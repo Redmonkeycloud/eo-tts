@@ -1,6 +1,6 @@
-data/
-runs/
-checkpoints/
+/data/
+/runs/
+/checkpoints/
 __pycache__/
 *.pyc
 *.egg-info/
