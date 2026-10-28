@@ -1,0 +1,3 @@
+[submodule "third_party/TerraDiT"]
+	path = third_party/TerraDiT
+	url = https://github.com/mvrl/TerraDiT

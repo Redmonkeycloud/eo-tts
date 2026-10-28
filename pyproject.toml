@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eotts"
+version = "0.1.0"
+description = "Test-time scaling for Earth observation diffusion transformers"
+requires-python = ">=3.10"
+dependencies = [
+  "pyarrow>=14",
+  "huggingface_hub>=0.25",
+  "pillow",
+  "numpy",
+  "tqdm",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["eotts*"]

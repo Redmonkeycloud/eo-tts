@@ -1,0 +1,23 @@
+{
+  "_source": "TerraDiT-Omega (ECCV 2026), arXiv 2606.31029, Table 1 (FID, sFID, LPIPS) and Table S3 (SSIM, CLIP). CLIP is reported as cosine similarity; the repo's metrics.py reports the CLIP logit (cosine x 100), so compare clip_score / 100.",
+  "_protocol_paper": "100 linear-flow Euler steps, CFG 0, batch 32, seed not reported.",
+  "omega_xl": {
+    "omega": {
+      "random":  {"fid": 9.25,  "sfid": 4.38, "lpips": 0.3438, "ssim": 0.2665, "clip_cos": 0.2812},
+      "spatial": {"fid": 17.54, "sfid": 4.15, "lpips": 0.3614, "ssim": 0.3421, "clip_cos": 0.2761},
+      "dense":   {"fid": 18.20, "sfid": 16.21, "lpips": 0.3455, "ssim": 0.1757, "clip_cos": 0.2821}
+    },
+    "box": {
+      "random":  {"fid": 9.72,  "sfid": 4.45, "lpips": 0.3509, "ssim": 0.2623, "clip_cos": 0.2813},
+      "spatial": {"fid": 17.46, "sfid": 4.16, "lpips": 0.3620, "ssim": 0.3427, "clip_cos": 0.2763},
+      "dense":   {"fid": 19.46, "sfid": 16.28, "lpips": 0.3594, "ssim": 0.1656, "clip_cos": 0.2813}
+    }
+  },
+  "alpha_xl": {
+    "text": {
+      "random":  {"fid": 14.21, "sfid": 5.13, "lpips": 0.3972, "ssim": 0.2599, "clip_cos": 0.2787},
+      "spatial": {"fid": 20.33, "sfid": 4.10, "lpips": 0.3863, "ssim": 0.3316, "clip_cos": 0.2849},
+      "dense":   {"fid": 29.76, "sfid": 17.94, "lpips": 0.4853, "ssim": 0.1275, "clip_cos": 0.2661}
+    }
+  }
+}
