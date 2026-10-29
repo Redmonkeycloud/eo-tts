@@ -8,9 +8,38 @@
 (Best-of-N, then particle-based search with Rollover Budget Forcing) over pretrained
 satellite image generators, guided by remote-sensing verifiers.
 
-Base model: **TerraDiT-Ω-XL** ([code](https://github.com/mvrl/TerraDiT),
-[weights](https://huggingface.co/MVRL/TerraDiT), ECCV 2026), pinned as a git submodule at
-commit `8d90f0d` and used unmodified.
+## Base model
+
+All experiments build on **TerraDiT-Ω-XL** by Wei, Sastry, Cher, Xing and Jacobs
+(Multimodal Vision Research Lab, Washington University in St. Louis). Their code is pinned
+here as a git submodule at commit `8d90f0d` and used unmodified.
+
+| | Link |
+| --- | --- |
+| Paper (TerraDiT-Ω, ECCV 2026) | [arXiv:2606.31029](https://arxiv.org/abs/2606.31029) · [project page](https://brian-j-wei.github.io/terradit-omega/index.html) |
+| Paper (TerraDiT-α/Σ) | [arXiv:2603.02172](https://arxiv.org/abs/2603.02172) · [project page](https://vishu26.github.io/terradit/index.html) |
+| Code | [github.com/mvrl/TerraDiT](https://github.com/mvrl/TerraDiT) |
+| Weights | [huggingface.co/MVRL/TerraDiT](https://huggingface.co/MVRL/TerraDiT) |
+| Derived data and test splits | [huggingface.co/datasets/MVRL/TerraDiT-data](https://huggingface.co/datasets/MVRL/TerraDiT-data) |
+| Imagery (Git-10M) | [huggingface.co/datasets/lcybuaa/Git-10M](https://huggingface.co/datasets/lcybuaa/Git-10M) |
+
+If you use this repository, please cite their work:
+
+```bibtex
+@inproceedings{wei2026terraditomega,
+  title     = {TerraDiT-{\Omega}: Unified Spatial Control for Satellite Image Synthesis with Any Geospatial Primitive},
+  author    = {Wei, Brian and Sastry, Srikumar and Cher, Daniel and Xing, Eric and Jacobs, Nathan},
+  booktitle = {European Conference on Computer Vision},
+  year      = {2026}
+}
+
+@article{sastry2026terradit,
+  title   = {TerraDiT: Point-Conditioned Diffusion Transformer for Satellite Image Synthesis},
+  author  = {Sastry, Srikumar and Cher, Daniel and Wei, Brian and Dhakal, Aayush and Khanal, Subash and Gupta, Dev and Jacobs, Nathan},
+  journal = {arXiv:2603.02172},
+  year    = {2026}
+}
+```
 
 ## Status
 
@@ -34,7 +63,7 @@ split metadata by `img_name`, so pixels and captions are byte-identical.
 
 Shards are fetched one at a time and deleted after extraction; the stored subset is ~0.2 GB per split.
 
-Paper targets (TerraDiT-Ω-XL, condition Ω, from Table 1 and Table S3) are in
+Paper targets (TerraDiT-Ω-XL, condition Ω, from Table 1 and Table S3 of [arXiv:2606.31029](https://arxiv.org/abs/2606.31029)) are in
 `configs/paper_targets.json`; every result file stores them next to our numbers.
 
 | Split | FID ↓ | LPIPS ↓ | SSIM ↑ | CLIP (cos) ↑ |
