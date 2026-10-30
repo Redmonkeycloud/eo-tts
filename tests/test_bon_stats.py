@@ -78,3 +78,14 @@ def test_selection_rules_nested_and_correct():
     assert rank_average(s1, s2, 2).tolist()[0] == 0
     assert oracle(s1, 4, False).tolist() == [0, 3]
     assert take(s1, np.array([1, 2])).tolist() == [0.9, 0.8]
+
+
+def test_guard_undefined_when_kid_at_n1_not_positive():
+    from eotts.bon.analyze import endpoints
+    d = {"estimate": 0.0, "ci_low": -1.0, "ci_high": 1.0, "p_boot": 0.5}
+    cell = {"clip_cos": {"diff_vs_n1": d}, "kid_dino": {"diff_vs_n1": d}}
+    mk = lambda base: {"rules": {r: {"16": cell} for r in ("v1", "v2", "v1+v2")},
+                       "n1_kid_full_sample": {"kid_dino": base}}
+    e = endpoints({"A": mk(-0.5), "B": mk(20.0)})["guard_kid_dino_n16_vs_n1"]
+    assert e["A/v1"]["non_inferior"] is None and e["A/v1"]["margin"] is None
+    assert e["B/v1"]["non_inferior"] is True and e["B/v1"]["margin"] == 2.0

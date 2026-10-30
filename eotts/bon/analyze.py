@@ -101,9 +101,13 @@ def endpoints(per_set: dict[str, dict]) -> dict:
         base = r["n1_kid_full_sample"]["kid_dino"]
         for rule in RULES:
             d = r["rules"][rule]["16"]["kid_dino"]["diff_vs_n1"]
-            margin = 0.10 * base
+            if base > 0:
+                margin = 0.10 * base
+                verdict = bool(d["ci_high"] < margin)
+            else:   # amendment 2: a relative margin is undefined when the estimate at N = 1 is not positive
+                margin, verdict = None, None
             guard[f"{s}/{rule}"] = {"diff": d, "margin": margin, "kid_dino_n1": base,
-                                    "non_inferior": d["ci_high"] < margin}
+                                    "non_inferior": verdict}
     return {"primary_clip_n16_vs_n1": {k: {**eff[k], **h[k]} for k in eff},
             "guard_kid_dino_n16_vs_n1": guard}
 

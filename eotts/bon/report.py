@@ -28,7 +28,10 @@ def write_report(per_set, ends, anchors, path):
               "| Set / rule | Δ KID-DINOv2 ×10³ [95 % CI] | Margin ×10³ | Non-inferior |",
               "| --- | --- | --- | --- |"]
         for k, g in ends["guard_kid_dino_n16_vs_n1"].items():
-            L.append(f"| {k} | {_ci(g['diff'], 1e3, 3)} | {g['margin'] * 1e3:.3f} | {'yes' if g['non_inferior'] else 'no'} |")
+            if g["non_inferior"] is None:
+                L.append(f"| {k} | {_ci(g['diff'], 1e3, 3)} | undefined (KID at N = 1 is {g['kid_dino_n1'] * 1e3:.3f}) | undefined |")
+            else:
+                L.append(f"| {k} | {_ci(g['diff'], 1e3, 3)} | {g['margin'] * 1e3:.3f} | {'yes' if g['non_inferior'] else 'no'} |")
         L.append("")
 
     for s, r in per_set.items():

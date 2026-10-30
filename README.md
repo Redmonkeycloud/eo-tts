@@ -51,8 +51,8 @@ If you use this repository, please cite their work:
 | --- | --- |
 | Paper-protocol baseline, TerraDiT-Ω-XL, Git-Rand | done: FID 9.81 vs 9.25 in the paper ([details](docs/baseline_reproduction.md)) |
 | Experiment protocol for Best-of-N, fixed before any run | done ([protocol](docs/experiment_protocol.md)) |
-| Best-of-N on 2,000 Git-Rand tiles, N ∈ {1, 2, 4, 8, 16}, 2 verifiers | code ready |
-| Best-of-N on 500 Git-Spatial tiles (held-out region), with fp32 anchor | code ready |
+| Best-of-N on 2,000 Git-Rand tiles, N ∈ {1, 2, 4, 8, 16}, 2 verifiers | generating (started 2026-10-30) |
+| Best-of-N on 500 Git-Spatial tiles (held-out region), with fp32 anchor | queued after R2000 |
 | Full Git-Spatial baseline | not run; Spatial is used as a held-out test set for search ([why](docs/experiment_protocol.md#anchors)) |
 | Best verifier on the full Git-Rand split, N = 4 | after the subset results |
 | Rollover Budget Forcing with custom allocation rules | later |

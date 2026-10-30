@@ -211,3 +211,14 @@ a result, because none existed.
    the true caption among 48 was 9.2 for V1 and 4.5 for V2 (chance 23.5).
 8. **Correlations** are reported both pooled over all samples, as written in version 1, and as the
    mean within-tile Spearman correlation. The within-tile value is the one relevant to selection.
+
+### Amendment 2 (2026-10-30, after the smoke test, before any protocol run was analysed)
+
+The 2-tile smoke test gave a negative KID-DINOv2 at N = 1. The unbiased MMD² estimator can be
+negative when the true value is close to zero or the sample is small. A margin of "10 % of
+KID(N = 1)" is then negative and the guard decision is meaningless. If KID-DINOv2 at N = 1 is
+not positive on a set, the guard for that set is reported as **undefined**, with the
+difference and its CI, rather than as passed or failed. The margin itself is unchanged.
+Generation of R2000 had started with the code of the previous commit; this amendment touches
+only the analysis.
+
