@@ -26,7 +26,7 @@ args = ap.parse_args()
 meta = os.path.join(args.data_root, "splits", args.split, "metadata.json")
 if not os.path.exists(meta):
     sys.exit(f"{meta} missing: run scripts/01_download_assets.py first")
-rows = json.load(open(meta))
+rows = json.load(open(meta, encoding="utf-8"))
 p = plan(rows)
 print(f"[subset] {args.split}: {p['num_rows']} tiles in {p['num_shards']} shards, "
       f"download {p['download_bytes'] / 1e9:.1f} GB (one shard on disk at a time)")

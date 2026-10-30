@@ -38,7 +38,7 @@ if args.run.startswith("R2000_baseline_fp32"):
     tiles, ks = s["tiles"][:args.limit_tiles] if args.limit_tiles else s["tiles"], [0]
     image_path = lambda t, k: os.path.join(args.baseline_images, t["stem"] + ".png")
 else:
-    gen = json.load(open(os.path.join(run_dir, "generation.json")))
+    gen = json.load(open(os.path.join(run_dir, "generation.json"), encoding="utf-8"))
     tiles, ks = s["tiles"][:gen["num_tiles"]], gen["sample_ids"]
     image_path = lambda t, k: sample_path(run_dir, t["stem"], k)
 

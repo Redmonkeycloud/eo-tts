@@ -24,10 +24,10 @@ def sample_seed(split: str, hf_idx: int, k: int) -> int:
 def load_set(name: str, data_root: str) -> dict:
     """Tiles of a set, in protocol order, with their row index in the split metadata."""
     spec = SETS[name]
-    listed = json.load(open(spec["list"]))
+    listed = json.load(open(spec["list"], encoding="utf-8"))
     if listed["n"] != spec["n"] or len(listed["tiles"]) != spec["n"]:
         raise ValueError(f"{spec['list']} does not hold {spec['n']} tiles")
-    rows = json.load(open(os.path.join(data_root, "splits", spec["split"], "metadata.json")))
+    rows = json.load(open(os.path.join(data_root, "splits", spec["split"], "metadata.json"), encoding="utf-8"))
     pos = {r["img_name"]: i for i, r in enumerate(rows)}
     tiles = []
     for t in listed["tiles"]:

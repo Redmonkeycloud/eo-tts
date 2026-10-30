@@ -47,8 +47,8 @@ ends = endpoints(per_set) if per_set else {}
 if ends:
     save(ends, os.path.join(out_dir, "endpoints.json"))
 
-targets = json.load(open(os.path.join(REPO_ROOT, "configs", "paper_targets.json")))
-baseline = json.load(open(os.path.join(REPO_ROOT, "results", "baseline", "omega_xl_random_omega.json")))
+targets = json.load(open(os.path.join(REPO_ROOT, "configs", "paper_targets.json"), encoding="utf-8"))
+baseline = json.load(open(os.path.join(REPO_ROOT, "results", "baseline", "omega_xl_random_omega.json"), encoding="utf-8"))
 anchors = {}
 base_sc, r_sc = scores("R2000_baseline_fp32"), scores("R2000")
 if base_sc:
@@ -63,7 +63,7 @@ s_sc, s32_sc = scores("S500"), scores("S500_fp32_k0")
 if s_sc and s32_sc:
     a3 = anchor_per_image(s_sc, s32_sc, "BoN sample 0 (bf16)", "sample 0 (fp32, same noise)")
     st = load_set("S500", args.data_root)["tiles"]
-    gen = json.load(open(os.path.join(args.runs_root, "S500_fp32_k0" + args.suffix, "generation.json")))
+    gen = json.load(open(os.path.join(args.runs_root, "S500_fp32_k0" + args.suffix, "generation.json"), encoding="utf-8"))
     st = st[:gen["num_tiles"]]
     a3["pixels"] = psnr_same_noise(
         [sample_path(os.path.join(args.runs_root, "S500" + args.suffix), t["stem"], 0) for t in st],

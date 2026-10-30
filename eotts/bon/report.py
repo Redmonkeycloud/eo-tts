@@ -83,4 +83,4 @@ def write_report(per_set, ends, anchors, path):
             L.append("")
         sr = anchors.get("stop_rule", {})
         L += [f"Stop rule ({sr.get('rule', '')}): **{'TRIGGERED' if sr.get('stop') else 'not triggered'}**", ""]
-    open(path, "w").write("\n".join(L) + "\n")
+    open(path, "w", encoding="utf-8").write("\n".join(L) + "\n")

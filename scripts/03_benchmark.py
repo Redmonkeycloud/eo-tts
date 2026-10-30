@@ -139,6 +139,6 @@ for dtype in ("fp32", "bf16"):
 
 out = {"model": args.model, "weights_gb_on_gpu": round(weights_gb, 2), "timing": timing,
        "fidelity_fp32_vs_bf16": fidelity, "estimates": est, "provenance": provenance()}
-json.dump(out, open(os.path.join(args.out_dir, "benchmark.json"), "w"), indent=2)
+json.dump(out, open(os.path.join(args.out_dir, "benchmark.json"), "w", encoding="utf-8"), indent=2)
 print(json.dumps(est, indent=2))
 print(f"[benchmark] -> {args.out_dir}/benchmark.json, fp32_vs_bf16.png (top row fp32, bottom bf16)")

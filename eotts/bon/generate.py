@@ -48,7 +48,7 @@ def generate(*, set_name, run_dir, model="omega_xl", num_samples=16, sample_ids=
             "seed_rule": 'first 8 bytes of sha256("{split}:{hf_idx}:{k}"), CPU torch.Generator',
             "provenance_at_start": provenance(), "runs": []}
     if os.path.exists(meta_path):
-        old = json.load(open(meta_path))
+        old = json.load(open(meta_path, encoding="utf-8"))
         for key in ("set", "model", "precision", "num_steps"):
             if old.get(key) != meta[key]:
                 raise ValueError(f"{run_dir} was generated with {key}={old.get(key)!r}, now {meta[key]!r}")
@@ -57,7 +57,7 @@ def generate(*, set_name, run_dir, model="omega_xl", num_samples=16, sample_ids=
     run_entry = {"started": time.strftime("%Y-%m-%dT%H:%M:%S"), "pending_at_start": len(todo),
                  "provenance": provenance()}
     meta["runs"].append(run_entry)
-    json.dump(meta, open(meta_path, "w"), indent=2)
+    json.dump(meta, open(meta_path, "w", encoding="utf-8"), indent=2)
     print(f"[bon] {set_name}: {len(tiles)} tiles x {len(ks)} samples, {len(todo)} to generate -> {run_dir}")
     if not todo:
         return meta
@@ -112,5 +112,5 @@ def generate(*, set_name, run_dir, model="omega_xl", num_samples=16, sample_ids=
 
     run_entry["finished"] = time.strftime("%Y-%m-%dT%H:%M:%S")
     run_entry["s_per_image"] = round((time.time() - t0) / max(done, 1), 3)
-    json.dump(meta, open(meta_path, "w"), indent=2)
+    json.dump(meta, open(meta_path, "w", encoding="utf-8"), indent=2)
     return meta

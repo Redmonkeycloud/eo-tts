@@ -47,10 +47,10 @@ def score_images(*, tiles, image_path, ks, out_dir, subset, device, batch_size=3
     def save(name, **arrays):
         np.savez(os.path.join(sdir, name + ".npz"), **arrays)
         log = os.path.join(sdir, "scoring_log.json")
-        entries = json.load(open(log)) if os.path.exists(log) else []
+        entries = json.load(open(log, encoding="utf-8")) if os.path.exists(log) else []
         entries.append({"component": name, "time": time.strftime("%Y-%m-%dT%H:%M:%S"),
                         "provenance": provenance(), **meta})
-        json.dump(entries, open(log, "w"), indent=1)
+        json.dump(entries, open(log, "w", encoding="utf-8"), indent=1)
 
     def done(name):
         return os.path.exists(os.path.join(sdir, name + ".npz"))

@@ -153,4 +153,4 @@ def psnr_same_noise(paths_a, paths_b) -> dict:
 
 def save(obj, path):
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    json.dump(obj, open(path, "w"), indent=1)
+    json.dump(obj, open(path, "w", encoding="utf-8"), indent=1)

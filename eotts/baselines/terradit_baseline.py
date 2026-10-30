@@ -29,7 +29,7 @@ FAMILY = {"alpha_xl": "alpha", "sigma_xl": "sigma", "omega_xl": "omega", "omega_
 
 def _paper_target(model, cond, split):
     try:
-        return json.load(open(PAPER_TARGETS))[model][cond][split]
+        return json.load(open(PAPER_TARGETS, encoding="utf-8"))[model][cond][split]
     except KeyError:
         return None
 
@@ -113,7 +113,7 @@ def run_baseline(*, model="omega_xl", split="random", condition_type="omega",
     }
     if limit:
         out["note"] = "limited run: FID on a few hundred tiles is biased upward and not comparable to the paper"
-    json.dump(out, open(res_path, "w"), indent=2)
+    json.dump(out, open(res_path, "w", encoding="utf-8"), indent=2)
     print(json.dumps({k: out[k] for k in ("run", "metrics", "paper", "delta_vs_paper")}, indent=2))
     print(f"[baseline] -> {res_path}")
     return out

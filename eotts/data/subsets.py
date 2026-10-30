@@ -60,7 +60,7 @@ def tag_distribution(rows_idx: np.ndarray, inst: dict, top: int = 20) -> dict[in
 
 def representativeness(split_dir: str, n: int, seed: int = PERMUTATION_SEED) -> dict:
     """Subset vs full split on the statistics above, plus the overlap of the top-20 tags."""
-    rows = json.load(open(os.path.join(split_dir, "metadata.json")))
+    rows = json.load(open(os.path.join(split_dir, "metadata.json"), encoding="utf-8"))
     inst = dict(np.load(os.path.join(split_dir, "inst_metadata.npz")))
     full_idx = np.arange(len(rows))
     sub_idx = permutation(len(rows), seed)[:n]
@@ -79,10 +79,10 @@ def representativeness(split_dir: str, n: int, seed: int = PERMUTATION_SEED) -> 
 
 
 def write_subset_list(split_dir: str, n: int, out_path: str, seed: int = PERMUTATION_SEED):
-    rows = json.load(open(os.path.join(split_dir, "metadata.json")))
+    rows = json.load(open(os.path.join(split_dir, "metadata.json"), encoding="utf-8"))
     sub = subset_rows(rows, n, seed)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     json.dump({"seed": seed, "n": n, "split_rows": len(rows),
                "tiles": [{"img_name": r["img_name"], "hf_idx": int(r["hf_idx"])} for r in sub]},
-              open(out_path, "w"), indent=1)
+              open(out_path, "w", encoding="utf-8"), indent=1)
     return out_path

@@ -145,7 +145,7 @@ def build_subset(rows: list[dict], out_dir: str, *, repo_id=GIT10M_REPO, revisio
     manifest = {"repo_id": repo_id, "revision": revision, "num_rows": len(rows),
                 "num_shards": len(groups), "shards": list(groups),
                 "hf_idx_sorted": sorted(int(r["hf_idx"]) for r in rows)}
-    json.dump(manifest, open(os.path.join(out_dir, "manifest.json"), "w"))
+    json.dump(manifest, open(os.path.join(out_dir, "manifest.json"), "w", encoding="utf-8"))
     print(f"[subset] {len(rows)} rows from {len(groups)} shards -> {out_dir}")
     return out_dir
 
