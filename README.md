@@ -51,8 +51,8 @@ If you use this repository, please cite their work:
 | --- | --- |
 | Paper-protocol baseline, TerraDiT-Ω-XL, Git-Rand | done: FID 9.81 vs 9.25 in the paper ([details](docs/baseline_reproduction.md)) |
 | Experiment protocol for Best-of-N, fixed before any run | done ([protocol](docs/experiment_protocol.md)) |
-| Best-of-N on 2,000 Git-Rand tiles, N ∈ {1, 2, 4, 8, 16}, 2 verifiers | next |
-| Best-of-N on 500 Git-Spatial tiles (held-out region), with fp32 anchor | next |
+| Best-of-N on 2,000 Git-Rand tiles, N ∈ {1, 2, 4, 8, 16}, 2 verifiers | code ready |
+| Best-of-N on 500 Git-Spatial tiles (held-out region), with fp32 anchor | code ready |
 | Full Git-Spatial baseline | not run; Spatial is used as a held-out test set for search ([why](docs/experiment_protocol.md#anchors)) |
 | Best verifier on the full Git-Rand split, N = 4 | after the subset results |
 | Rollover Budget Forcing with custom allocation rules | later |
@@ -139,6 +139,25 @@ python scripts/04_run_baseline.py --split spatial
 Generation resumes from the images already on disk, so an interrupted run is restarted with
 the same command. Results land in `runs/baseline/<run>/results.json`.
 
+## Best-of-N run order
+
+Fixed in advance by [docs/experiment_protocol.md](docs/experiment_protocol.md). GPU hours are on an RTX 3060.
+
+```powershell
+python scripts/05_generate_bon.py --set S500 --limit-tiles 2        # smoke test, a few minutes
+python scripts/05_generate_bon.py --set R2000                       # 32,000 samples, bf16, ~56 h
+python scripts/05_generate_bon.py --set S500                        # 8,000 samples, bf16, ~14 h
+python scripts/05_generate_bon.py --set S500 --anchor-fp32          # sample 0 in fp32, same noise, ~1.6 h
+python scripts/06_score_bon.py --run R2000
+python scripts/06_score_bon.py --run S500
+python scripts/06_score_bon.py --run S500_fp32_k0
+python scripts/06_score_bon.py --run R2000_baseline_fp32            # the fp32 baseline images on R2000 (anchors 1-2)
+python scripts/07_analyze_bon.py                                    # -> results/bon/report.md
+```
+
+Every step resumes after an interruption. Each sample has its own seed, derived from
+(split, tile, sample index), so a sample is identical however and whenever it is generated.
+
 ## Layout
 
 ```
@@ -147,14 +166,17 @@ docs/baseline_reproduction.md   baseline results, metric definitions, gap analys
 docs/experiment_protocol.md     Best-of-N questions, tiles, verifiers, endpoints, statistics (pre-registered)
 configs/subsets/                fixed evaluation tile lists and their representativeness statistics
 eotts/data/subsets.py           how the subsets are drawn and checked
+eotts/bon/                      Best-of-N: sets and seeds, generation, selection rules, analysis, report
+eotts/scoring/                  verifiers (V1, V2) and evaluators (E1-E5)
+eotts/stats/                    KID from features, paired bootstrap, Holm
 results/                        result files of finished runs (images stay local)
 eotts/data/git10m_subset.py     exact local subset of Git-10M (shard math, verify, read)
 eotts/baselines/                paper-protocol baseline runner
 eotts/eval/kid.py               KID (extra metric for small subsets)
 eotts/provenance.py             code versions, environment, GPU, written into every result
-scripts/00..04                  the steps above, in order
+scripts/00..07                  the steps above, in order
 third_party/TerraDiT            upstream code, pinned, unmodified
-tests/                          subset builder tests (no GPU, no network)
+tests/                          subset builder, statistics and selection tests (no GPU, no network)
 ```
 
 ## Licences

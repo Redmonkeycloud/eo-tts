@@ -182,4 +182,32 @@ On one RTX 3060 (measured: bf16 6.33 s, fp32 11.6 s per image at batch 32).
 
 ## Deviations
 
-None yet.
+### Amendment 1 (2026-10-30, before any Best-of-N sample was generated)
+
+Written while implementing the protocol. These clarify how version 1 is computed. None depends on
+a result, because none existed.
+
+1. **Noise generator.** Each sample's generator is a CPU `torch.Generator`, so a sample is
+   reproducible across GPUs and batch sizes. Checked: the same sample generated in batches of
+   different composition differs by at most 1/255 per pixel.
+2. **KID estimator for comparisons.** Differences between selection rules use the unbiased MMD²
+   with the KID kernel computed on all tiles of the set, rather than the average over random
+   1,000-tile subsets. The two have the same expectation. The full-sample form is the one the
+   tile bootstrap applies to. The subset form is still reported at N = 1, for comparison with the
+   baseline. In the bootstrap, pairs of draws of the same tile are excluded from the within-set
+   terms, as the unbiased estimator excludes i = j.
+3. **Bootstrap p-value**, used for the Holm correction: 2 · min(P(Δ* ≤ 0), P(Δ* ≥ 0)) over
+   resamples, floored at 1/B. Seeds: 12345 for per-image metrics, 54321 for KID.
+4. **Stop rule, made operational.** An anchor triggers it if its absolute difference on a metric
+   exceeds the half-width of the narrowest N = 16 vs N = 1 CI for that metric on the same set.
+5. **DINOv2 input.** Tiles are resized to 224×224 (bicubic) without cropping and normalised with
+   ImageNet statistics. The feature is the CLS token after the final layer norm.
+6. **Pinned evaluator revision.** E1 uses `openai/clip-vit-large-patch14` at revision `32bd6428`.
+   Our per-image E1–E3 code reproduces the upstream `terradit/eval/metrics.py` means exactly
+   (checked to 6 decimals on 32 images).
+7. **Verifier validity, added as a descriptive check.** On the real tiles of each set, we record
+   the share of the set's other captions that a verifier scores above the tile's own caption
+   (0 = always first, 0.5 = chance). On 48 Spatial tiles before any generation, the mean rank of
+   the true caption among 48 was 9.2 for V1 and 4.5 for V2 (chance 23.5).
+8. **Correlations** are reported both pooled over all samples, as written in version 1, and as the
+   mean within-tile Spearman correlation. The within-tile value is the one relevant to selection.

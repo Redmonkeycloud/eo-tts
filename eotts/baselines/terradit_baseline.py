@@ -60,6 +60,7 @@ def run_baseline(*, model="omega_xl", split="random", condition_type="omega",
     subset.check_covers(rows)
     ckpt = os.path.dirname(resolve_checkpoint(model, checkpoints_root=weights_root))
 
+    prov_start = provenance()
     timings = {}
     have = sum(os.path.exists(os.path.join(gen_dir, stem(r["img_name"]) + ".png")) for r in rows)
     if not metrics_only and (regenerate or have < len(rows)):
@@ -107,6 +108,7 @@ def run_baseline(*, model="omega_xl", split="random", condition_type="omega",
                      "num_tiles": len(rows), "limit": limit,
                      "image_source": "Git10MSubset (img_name-verified rows of the pinned snapshot)"},
         "timings": timings,
+        "provenance_at_start": prov_start,
         "provenance": provenance(),
     }
     if limit:

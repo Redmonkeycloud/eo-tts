@@ -30,7 +30,7 @@ except ImportError:
     check("torch", False, "not installed")
 
 for mod in ("diffusers", "transformers", "torchmetrics", "torch_fidelity", "pyarrow", "huggingface_hub",
-            "safetensors", "timm", "einops", "scipy"):
+            "safetensors", "timm", "einops", "scipy", "open_clip"):
     try:
         m = __import__(mod)
         check(mod, True, getattr(m, "__version__", ""))

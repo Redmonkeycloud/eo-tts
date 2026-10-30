@@ -13,6 +13,8 @@ dependencies = [
   "pillow",
   "numpy",
   "tqdm",
+  "open_clip_torch>=2.24",
+  "scipy",
 ]
 
 [project.optional-dependencies]
