@@ -1,5 +1,9 @@
 # EO-TTS: Earth Observation Test-Time Scaling
 
+**George Plessias** ([@Redmonkeycloud](https://github.com/Redmonkeycloud)) · supervised by **Ioannis Kakogeorgiou** ([@gkakogeorgiou](https://github.com/gkakogeorgiou))
+
+MSc thesis, MSc in Artificial Intelligence, University of Piraeus and NCSR "Demokritos"
+
 ![TerraDiT-Ω-XL samples on Git-Spatial tiles: fp32 (top) vs bf16 autocast (bottom), same noise](docs/assets/fp32_vs_bf16.png)
 
 *TerraDiT-Ω-XL, 100 Euler steps, same tiles and noise: fp32 (top) vs bf16 autocast (bottom). Mean PSNR 54.2 dB; bf16 is 1.7× faster on an RTX 3060 (6.3 vs 10.8 s per image).*
