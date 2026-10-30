@@ -46,8 +46,11 @@ If you use this repository, please cite their work:
 | Stage | State |
 | --- | --- |
 | Paper-protocol baseline, TerraDiT-Ω-XL, Git-Rand | done: FID 9.81 vs 9.25 in the paper ([details](docs/baseline_reproduction.md)) |
-| Paper-protocol baseline, Git-Spatial | not yet run |
-| Best-of-N, N ∈ {1, 4, 8, 16}, 2–3 verifiers | next |
+| Experiment protocol for Best-of-N, fixed before any run | done ([protocol](docs/experiment_protocol.md)) |
+| Best-of-N on 2,000 Git-Rand tiles, N ∈ {1, 2, 4, 8, 16}, 2 verifiers | next |
+| Best-of-N on 500 Git-Spatial tiles (held-out region), with fp32 anchor | next |
+| Full Git-Spatial baseline | not run; Spatial is used as a held-out test set for search ([why](docs/experiment_protocol.md#anchors)) |
+| Best verifier on the full Git-Rand split, N = 4 | after the subset results |
 | Rollover Budget Forcing with custom allocation rules | later |
 
 ## Baseline results
@@ -137,6 +140,9 @@ the same command. Results land in `runs/baseline/<run>/results.json`.
 ```
 configs/paper_targets.json      paper numbers we compare against
 docs/baseline_reproduction.md   baseline results, metric definitions, gap analysis
+docs/experiment_protocol.md     Best-of-N questions, tiles, verifiers, endpoints, statistics (pre-registered)
+configs/subsets/                fixed evaluation tile lists and their representativeness statistics
+eotts/data/subsets.py           how the subsets are drawn and checked
 results/                        result files of finished runs (images stay local)
 eotts/data/git10m_subset.py     exact local subset of Git-10M (shard math, verify, read)
 eotts/baselines/                paper-protocol baseline runner
