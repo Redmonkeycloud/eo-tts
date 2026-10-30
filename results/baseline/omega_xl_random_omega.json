@@ -1,0 +1,72 @@
+{
+  "run": "omega_xl_random_omega",
+  "model": "omega_xl",
+  "family": "omega",
+  "split": "random",
+  "condition_type": "omega",
+  "metrics": {
+    "num_tiles": 14932,
+    "num_rows": 14932,
+    "fid": 9.814901351928711,
+    "clip_score": 28.815075272374393,
+    "lpips": 0.340067398126399,
+    "ssim": 0.26687268801796915,
+    "clip_cos": 0.2881507527237439,
+    "kid": 0.0039819288067519665,
+    "kid_std": 0.0004065189859829843,
+    "kid_subset_size": 1000
+  },
+  "paper": {
+    "fid": 9.25,
+    "sfid": 4.38,
+    "lpips": 0.3438,
+    "ssim": 0.2665,
+    "clip_cos": 0.2812
+  },
+  "delta_vs_paper": {
+    "fid": 0.5649,
+    "lpips": -0.0037,
+    "ssim": 0.0004,
+    "clip_cos": 0.007
+  },
+  "protocol": {
+    "num_steps": 100,
+    "cfg_scale": 0.0,
+    "sampler": "euler (terradit)",
+    "batch_size": 32,
+    "seed": 42,
+    "dtype": "fp32 (terradit default)",
+    "num_tiles": 14932,
+    "limit": null,
+    "image_source": "Git10MSubset (img_name-verified rows of the pinned snapshot)"
+  },
+  "timings": {
+    "generation_s": 173744.7,
+    "s_per_image": 11.636,
+    "metrics_s": 3427.0
+  },
+  "provenance": {
+    "eo_tts": {
+      "commit": "e458719dbe22287a9bd8a72a155f7c3dcbea5a3c",
+      "dirty": false
+    },
+    "terradit": {
+      "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+      "dirty": false
+    },
+    "env": {
+      "python": "3.14.0",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "torch": "2.9.1+cu126",
+      "cuda": "12.6",
+      "cudnn": 91002,
+      "gpu": "NVIDIA GeForce RTX 3060",
+      "gpu_mem_gb": 12.0,
+      "diffusers": "0.42.1",
+      "transformers": "5.21.0",
+      "torchmetrics": "1.9.0",
+      "huggingface_hub": "1.33.0",
+      "pyarrow": "22.0.0"
+    }
+  }
+}

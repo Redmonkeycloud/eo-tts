@@ -45,9 +45,29 @@ If you use this repository, please cite their work:
 
 | Stage | State |
 | --- | --- |
-| Paper-protocol baseline (TerraDiT-Ω-XL, random + spatial) | code ready |
+| Paper-protocol baseline, TerraDiT-Ω-XL, Git-Rand | done: FID 9.81 vs 9.25 in the paper ([details](docs/baseline_reproduction.md)) |
+| Paper-protocol baseline, Git-Spatial | not yet run |
 | Best-of-N, N ∈ {1, 4, 8, 16}, 2–3 verifiers | next |
 | Rollover Budget Forcing with custom allocation rules | later |
+
+## Baseline results
+
+TerraDiT-Ω-XL re-run with the authors' code and weights on the full Git-Rand split
+(14,932 tiles, 100 Euler steps, no guidance, batch 32, seed 42, fp32):
+
+| Metric | Ours | Paper | Ours − paper |
+| --- | --- | --- | --- |
+| FID ↓ | 9.81 | 9.25 | +0.56 |
+| LPIPS ↓ | 0.3401 | 0.3438 | −0.0037 |
+| SSIM ↑ | 0.2669 | 0.2665 | +0.0004 |
+| CLIP score (cosine) ↑ | 0.2882 | 0.2812 | +0.0070 |
+| KID ×10³ ↓ | 3.98 ± 0.41 | not reported | – |
+
+The per-image metrics match the paper; FID is 6 % higher. What each metric measures, what
+the paper leaves unstated, and the likely reasons for the gap (fp16 release weights, seed,
+software and hardware) are in [docs/baseline_reproduction.md](docs/baseline_reproduction.md).
+Raw output: [results/baseline/omega_xl_random_omega.json](results/baseline/omega_xl_random_omega.json).
+All later experiments are compared against this re-run.
 
 ## Reproducing the paper baseline
 
@@ -116,6 +136,8 @@ the same command. Results land in `runs/baseline/<run>/results.json`.
 
 ```
 configs/paper_targets.json      paper numbers we compare against
+docs/baseline_reproduction.md   baseline results, metric definitions, gap analysis
+results/                        result files of finished runs (images stay local)
 eotts/data/git10m_subset.py     exact local subset of Git-10M (shard math, verify, read)
 eotts/baselines/                paper-protocol baseline runner
 eotts/eval/kid.py               KID (extra metric for small subsets)
