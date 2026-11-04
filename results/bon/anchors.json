@@ -1,0 +1,213 @@
+{
+ "1_R2000_vs_full_split": {
+  "label": "fp32 baseline images on the R2000 tiles vs the full Git-Rand baseline means",
+  "clip_cos": {
+   "mean": 0.28867224471271036,
+   "ci_low": 0.28743811502885075,
+   "ci_high": 0.28990202718693764,
+   "reference": 0.2881507527237439,
+   "reference_inside_ci": true
+  },
+  "lpips": {
+   "mean": 0.33884967283904555,
+   "ci_low": 0.33556049495767803,
+   "ci_high": 0.34218491859808564,
+   "reference": 0.340067398126399,
+   "reference_inside_ci": true
+  },
+  "ssim": {
+   "mean": 0.26456495741568503,
+   "ci_low": 0.2584495126722846,
+   "ci_high": 0.2706878481213003,
+   "reference": 0.26687268801796915,
+   "reference_inside_ci": true
+  }
+ },
+ "2_bf16_vs_fp32_R2000": {
+  "a": "BoN sample 0 (bf16, per-sample seeds)",
+  "b": "fp32 baseline (different noise)",
+  "clip_cos": {
+   "mean_a": 0.2888234555721283,
+   "mean_b": 0.28867223858833313,
+   "diff": {
+    "estimate": 0.00015119524300098418,
+    "ci_low": -0.0009788981053978204,
+    "ci_high": 0.0012658090617507693,
+    "p_boot": 0.783,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "lpips": {
+   "mean_a": 0.3382602632045746,
+   "mean_b": 0.33884966373443604,
+   "diff": {
+    "estimate": -0.000589416041970253,
+    "ci_low": -0.002335761751048267,
+    "ci_high": 0.001151623099483549,
+    "p_boot": 0.5042,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "ssim": {
+   "mean_a": 0.2651068866252899,
+   "mean_b": 0.2645649313926697,
+   "diff": {
+    "estimate": 0.0005419181762263179,
+    "ci_low": -0.0014117084295256063,
+    "ci_high": 0.0024899517901241777,
+    "p_boot": 0.6024,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "kid_inception": {
+   "a": {
+    "kid": 0.004091738159312425,
+    "kid_std": 0.00032978588397786175,
+    "kid_subset_size": 1000
+   },
+   "b": {
+    "kid": 0.0038269006875561785,
+    "kid_std": 0.00030855429055456543,
+    "kid_subset_size": 1000
+   }
+  },
+  "kid_dino": {
+   "a": {
+    "kid": 0.48696305050480915,
+    "kid_std": 0.024194037808180937,
+    "kid_subset_size": 1000
+   },
+   "b": {
+    "kid": 0.4642434173907,
+    "kid_std": 0.02059365963320169,
+    "kid_subset_size": 1000
+   }
+  }
+ },
+ "3_bf16_vs_fp32_S500_same_noise": {
+  "a": "BoN sample 0 (bf16)",
+  "b": "sample 0 (fp32, same noise)",
+  "clip_cos": {
+   "mean_a": 0.28156957030296326,
+   "mean_b": 0.28159478306770325,
+   "diff": {
+    "estimate": -2.5212109088897704e-05,
+    "ci_low": -0.00029577469080686565,
+    "ci_high": 0.0002453250870108604,
+    "p_boot": 0.8536,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "lpips": {
+   "mean_a": 0.35889318585395813,
+   "mean_b": 0.35884496569633484,
+   "diff": {
+    "estimate": 4.820069670677185e-05,
+    "ci_low": -5.070438981056213e-05,
+    "ci_high": 0.00014264462590217588,
+    "p_boot": 0.341,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "ssim": {
+   "mean_a": 0.33984291553497314,
+   "mean_b": 0.339566707611084,
+   "diff": {
+    "estimate": 0.00027622880041599276,
+    "ci_low": 0.0002375737175345421,
+    "ci_high": 0.00031589032486081125,
+    "p_boot": 0.0001,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "kid_inception": {
+   "a": {
+    "kid": 0.01092094923830504,
+    "kid_std": 2.103689653863507e-16,
+    "kid_subset_size": 500
+   },
+   "b": {
+    "kid": 0.01086884159788645,
+    "kid_std": 2.9710865782324597e-16,
+    "kid_subset_size": 500
+   }
+  },
+  "kid_dino": {
+   "a": {
+    "kid": 0.544113636328461,
+    "kid_std": 1.1967771643217043e-15,
+    "kid_subset_size": 500
+   },
+   "b": {
+    "kid": 0.5476948445740656,
+    "kid_std": 2.2636573542557707e-15,
+    "kid_subset_size": 500
+   }
+  },
+  "pixels": {
+   "tiles": 500,
+   "psnr_db_mean": 50.438846770098486,
+   "psnr_db_min": 27.523017001867984,
+   "psnr_db_p05": 43.54576861262918
+  }
+ },
+ "4_S500_vs_paper_spatial": {
+  "label": "fp32 sample 0 on S500 vs the paper's full Git-Spatial values (plausibility only)",
+  "clip_cos": {
+   "mean": 0.28159480407834053,
+   "ci_low": 0.27906276724413037,
+   "ci_high": 0.2840882950671017,
+   "reference": 0.2761,
+   "reference_inside_ci": false
+  },
+  "lpips": {
+   "mean": 0.3588449808657169,
+   "ci_low": 0.35240490058586005,
+   "ci_high": 0.3654341947205365,
+   "reference": 0.3614,
+   "reference_inside_ci": true
+  },
+  "ssim": {
+   "mean": 0.3395666979700327,
+   "ci_low": 0.32820380055755377,
+   "ci_high": 0.350641946978122,
+   "reference": 0.3421,
+   "reference_inside_ci": true
+  }
+ },
+ "stop_rule": {
+  "rule": "stop if |anchor difference| exceeds the half-width of the narrowest N=16 vs N=1 CI for that metric on the same set",
+  "flags": [],
+  "stop": false
+ },
+ "provenance": {
+  "eo_tts": {
+   "commit": "dbace6843f5ba8a8aa05fc7e8ba4ac52d187d7b7",
+   "dirty": false
+  },
+  "terradit": {
+   "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+   "dirty": false
+  },
+  "env": {
+   "python": "3.14.0",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "torch": "2.9.1+cu126",
+   "cuda": "12.6",
+   "cudnn": 91002,
+   "gpu": "NVIDIA GeForce RTX 3060",
+   "gpu_mem_gb": 12.0,
+   "diffusers": "0.42.1",
+   "transformers": "5.21.0",
+   "torchmetrics": "1.9.0",
+   "huggingface_hub": "1.33.0",
+   "pyarrow": "22.0.0"
+  }
+ }
+}

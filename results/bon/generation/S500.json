@@ -1,0 +1,86 @@
+{
+  "set": "S500",
+  "split": "spatial",
+  "model": "omega_xl",
+  "precision": "bf16",
+  "sample_ids": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "num_tiles": 500,
+  "num_steps": 100,
+  "cfg_scale": 0.0,
+  "condition_type": "omega",
+  "batch_size": 32,
+  "seed_rule": "first 8 bytes of sha256(\"{split}:{hf_idx}:{k}\"), CPU torch.Generator",
+  "provenance_at_start": {
+    "eo_tts": {
+      "commit": "dbace6843f5ba8a8aa05fc7e8ba4ac52d187d7b7",
+      "dirty": false
+    },
+    "terradit": {
+      "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+      "dirty": false
+    },
+    "env": {
+      "python": "3.14.0",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "torch": "2.9.1+cu126",
+      "cuda": "12.6",
+      "cudnn": 91002,
+      "gpu": "NVIDIA GeForce RTX 3060",
+      "gpu_mem_gb": 12.0,
+      "diffusers": "0.42.1",
+      "transformers": "5.21.0",
+      "torchmetrics": "1.9.0",
+      "huggingface_hub": "1.33.0",
+      "pyarrow": "22.0.0"
+    }
+  },
+  "runs": [
+    {
+      "started": "2026-11-02T12:02:14",
+      "pending_at_start": 8000,
+      "provenance": {
+        "eo_tts": {
+          "commit": "dbace6843f5ba8a8aa05fc7e8ba4ac52d187d7b7",
+          "dirty": false
+        },
+        "terradit": {
+          "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+          "dirty": false
+        },
+        "env": {
+          "python": "3.14.0",
+          "platform": "Windows-11-10.0.26300-SP0",
+          "torch": "2.9.1+cu126",
+          "cuda": "12.6",
+          "cudnn": 91002,
+          "gpu": "NVIDIA GeForce RTX 3060",
+          "gpu_mem_gb": 12.0,
+          "diffusers": "0.42.1",
+          "transformers": "5.21.0",
+          "torchmetrics": "1.9.0",
+          "huggingface_hub": "1.33.0",
+          "pyarrow": "22.0.0"
+        }
+      },
+      "finished": "2026-11-03T04:36:02",
+      "s_per_image": 7.451
+    }
+  ]
+}
