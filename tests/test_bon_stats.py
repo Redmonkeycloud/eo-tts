@@ -89,3 +89,15 @@ def test_guard_undefined_when_kid_at_n1_not_positive():
     e = endpoints({"A": mk(-0.5), "B": mk(20.0)})["guard_kid_dino_n16_vs_n1"]
     assert e["A/v1"]["non_inferior"] is None and e["A/v1"]["margin"] is None
     assert e["B/v1"]["non_inferior"] is True and e["B/v1"]["margin"] == 2.0
+
+
+def test_fid_matches_torchmetrics():
+    from torchmetrics.image.fid import _compute_fid
+    from eotts.stats.fid import fid, gaussian_stats
+    rng = np.random.default_rng(5)
+    a, b = rng.normal(size=(400, 32)), rng.normal(0.3, 1.2, size=(400, 32))
+    mu1, s1 = gaussian_stats(a)
+    mu2, s2 = gaussian_stats(b)
+    theirs = float(_compute_fid(torch.tensor(mu1), torch.tensor(s1), torch.tensor(mu2), torch.tensor(s2)))
+    assert fid(a, b) == pytest.approx(theirs, rel=1e-8)
+    assert abs(fid(a, a)) < 1e-6

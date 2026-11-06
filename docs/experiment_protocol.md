@@ -222,3 +222,12 @@ difference and its CI, rather than as passed or failed. The margin itself is unc
 Generation of R2000 had started with the code of the previous commit; this amendment touches
 only the analysis.
 
+### Exploratory analysis E-1 (2026-11-06, after the results)
+
+FID per selection rule and N on R2000 and S500, computed from the cached Inception features
+(`scripts/09_exploratory_fid.py`, output `results/bon/exploratory_fid.*`). Requested after the
+results were known. It is **not** an endpoint and does not change any conclusion drawn from the
+pre-registered analysis. FID at these sample sizes is biased upward and is not comparable with
+full-split FID. The output reports, as references at the same size, the FID between two random
+halves of the real tiles and the FID of the fp32 baseline images on the R2000 tiles.
+
