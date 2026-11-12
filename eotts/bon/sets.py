@@ -10,6 +10,9 @@ from eotts.provenance import REPO_ROOT
 SETS = {
     "R2000": dict(split="random", n=2000, list=os.path.join(REPO_ROOT, "configs", "subsets", "random_2000.json")),
     "S500": dict(split="spatial", n=500, list=os.path.join(REPO_ROOT, "configs", "subsets", "spatial_500.json")),
+    # Protocol v2 (Study 2): all of Git-Rand, in the order of the same seed-0 permutation, so its
+    # first 2,000 tiles are exactly R2000.
+    "RFULL": dict(split="random", n=14932, list=os.path.join(REPO_ROOT, "configs", "subsets", "random_full.json")),
 }
 NUM_SAMPLES = 16
 N_VALUES = (1, 2, 4, 8, 16)

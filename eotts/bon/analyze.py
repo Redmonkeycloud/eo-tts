@@ -13,6 +13,7 @@ from scipy.stats import spearmanr
 from eotts.bon.select import RULES, V1, V2, oracle, select, take
 from eotts.bon.sets import N_VALUES
 from eotts.stats.bootstrap import holm, paired_mean_diff, summarize, tile_weights
+from eotts.stats.fid import fid_resampled
 from eotts.stats.kid import kid, poly_kernel, resampled_mmd2_parts
 
 PER_IMAGE = {"clip_cos": True, "lpips": False, "ssim": True}      # metric -> higher is better
@@ -21,47 +22,92 @@ B_MEAN, B_KID = 10_000, 1_000
 SEED_MEAN, SEED_KID = 12345, 54321
 
 
-def _real_term(real: np.ndarray) -> float:
-    k = poly_kernel(real, real)
+def _real_term(real: np.ndarray, device=None) -> float:
+    """mean_{i≠j} k(r_i, r_j), the real-only part of the unbiased MMD²."""
     m = len(real)
-    return float((k.sum() - np.trace(k)) / (m * (m - 1)))
+    if device is None:
+        k = poly_kernel(real, real)
+        return float((k.sum() - np.trace(k)) / (m * (m - 1)))
+    import torch
+    with torch.no_grad():
+        r = torch.as_tensor(np.ascontiguousarray(real), dtype=torch.float32, device=device)
+        prev = torch.backends.cuda.matmul.allow_tf32
+        torch.backends.cuda.matmul.allow_tf32 = False
+        try:
+            k = r @ r.T
+            k.div_(real.shape[1]).add_(1.0).pow_(3)
+            total = float(sum(float(k[i:i + 2048].double().sum()) for i in range(0, m, 2048)))
+            diag = float(torch.diagonal(k).double().sum())
+        finally:
+            torch.backends.cuda.matmul.allow_tf32 = prev
+        del k
+    return (total - diag) / (m * (m - 1))
 
 
-def analyze_set(sc: dict, set_name: str) -> dict:
-    """sc: load_scores() of a K=16 run. Returns all per-set results."""
+def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, progress=None,
+                b_kid: int = B_KID) -> dict:
+    """sc: load_scores() of a K=16 run. Returns all per-set results.
+
+    with_fid (protocol v2): also FID on Inception features for every rule × N, with tile
+    bootstrap CIs on the same resamples as KID (B_KID, SEED_KID), so FID and KID CIs are paired.
+    device: None = KID kernels in float64 NumPy (as for the pilot study); "cuda" = float32 GPU
+    with float64 reductions (needed at the full-split size; see eotts.stats.kid).
+    b_kid: KID/FID resamples; the protocol value B_KID, smaller only in smoke tests.
+    """
     vs = {V1: sc[f"verifiers.{V1}"], V2: sc[f"verifiers.{V2}"]}
     T, K = vs[V1].shape
-    W = tile_weights(T, B_MEAN, SEED_MEAN)
-    Wk = tile_weights(T, B_KID, SEED_KID)
+    W = tile_weights(T, B_MEAN, SEED_MEAN).astype(np.float64)
+    Wk = tile_weights(T, b_kid, SEED_KID)
+    Wk_aug = np.vstack([np.ones((1, T), Wk.dtype), Wk])      # row 0 = the original sample
     ev = {m: sc[f"evaluators.{m}"] for m in PER_IMAGE}
     feats = {f: (sc[f"{f}.samples"], sc[f"{f}.gt"]) for f in FEATURES}
-    real_term = {f: _real_term(feats[f][1]) for f in FEATURES}
-    boot_parts_k0, full_k0 = {}, {}
+    real_term = {f: _real_term(feats[f][1], device) for f in FEATURES}
+    sel = {"k0": np.zeros(T, int)}
+    for rule in RULES:
+        for n in N_VALUES[1:]:
+            sel[f"{rule}/{n}"] = select(rule, vs, n)
+    key = lambda rule, n: "k0" if n == 1 else f"{rule}/{n}"
+    parts = {f: {} for f in FEATURES}                          # (B_KID + 1,) per selection
     for f, (smp, gt) in feats.items():
-        boot_parts_k0[f] = resampled_mmd2_parts(smp[:, 0], gt, Wk)
-        full_k0[f] = float(resampled_mmd2_parts(smp[:, 0], gt, np.ones((1, T)))[0])
+        for kname, idx in sel.items():
+            parts[f][kname] = resampled_mmd2_parts(take(smp, idx), gt, Wk_aug, device=device)
+        if progress:
+            progress(f"kid {f} done")
 
     out = {"set": set_name, "tiles": T, "samples_per_tile": K, "n_values": list(N_VALUES),
-           "bootstrap": {"per_image_resamples": B_MEAN, "kid_resamples": B_KID,
-                         "seeds": [SEED_MEAN, SEED_KID]}, "rules": {}}
+           "bootstrap": {"per_image_resamples": B_MEAN, "kid_resamples": b_kid,
+                         "seeds": [SEED_MEAN, SEED_KID]},
+           "kid_backend": "numpy-float64" if device is None else f"torch-float32-{device}",
+           "rules": {}}
     for rule in RULES:
         rr = {}
         for n in N_VALUES:
-            idx = select(rule, vs, n)
+            idx = sel[key(rule, n)]
             cell = {"selected_index_hist": np.bincount(idx, minlength=K).tolist()}
             for m in PER_IMAGE:
-                sel = take(ev[m], idx)
-                cell[m] = {"mean": float(sel.mean()),
-                           "diff_vs_n1": paired_mean_diff(sel, ev[m][:, 0], W)}
+                chosen = take(ev[m], idx)
+                cell[m] = {"mean": float(chosen.mean()),
+                           "diff_vs_n1": paired_mean_diff(chosen, ev[m][:, 0], W)}
             for f, name in FEATURES.items():
-                smp, gt = feats[f]
-                chosen = take(smp, idx)
-                full = float(resampled_mmd2_parts(chosen, gt, np.ones((1, T)))[0]) + real_term[f]
-                parts = resampled_mmd2_parts(chosen, gt, Wk)
-                diff = summarize(full - real_term[f] - full_k0[f], parts - boot_parts_k0[f])
-                cell[name] = {"mmd2_full_sample": full, "diff_vs_n1": diff}
+                p, p0 = parts[f][key(rule, n)], parts[f]["k0"]
+                cell[name] = {"mmd2_full_sample": float(p[0]) + real_term[f],
+                              "diff_vs_n1": summarize(float(p[0] - p0[0]), p[1:] - p0[1:])}
             rr[str(n)] = cell
         out["rules"][rule] = rr
+    full_k0 = {f: float(parts[f]["k0"][0]) for f in FEATURES}
+
+    if with_fid:
+        smp, gt = feats["inception"]
+        chosen = {k: take(smp, idx) for k, idx in sel.items()}
+        fids = fid_resampled(chosen, gt, Wk_aug, progress=progress)
+        out["n1_fid_full_sample"] = float(fids["k0"][0])
+        for rule in RULES:
+            for n in N_VALUES:
+                f_, f0 = fids[key(rule, n)], fids["k0"]
+                out["rules"][rule][str(n)]["fid"] = {
+                    "full_sample": float(f_[0]),
+                    "diff_vs_n1": summarize(float(f_[0] - f0[0]), f_[1:] - f0[1:])}
+        out["bootstrap"]["fid_resamples"] = b_kid
 
     out["oracle"] = {m: {str(n): float(take(ev[m], oracle(ev[m], n, hb)).mean()) for n in N_VALUES}
                      for m, hb in PER_IMAGE.items()}
@@ -112,8 +158,30 @@ def endpoints(per_set: dict[str, dict]) -> dict:
             "guard_kid_dino_n16_vs_n1": guard}
 
 
-def anchor_per_image(sc_a: dict, sc_b: dict, label_a: str, label_b: str, ka: int = 0, kb: int = 0) -> dict:
-    """Paired per-image differences a − b on the same tiles (E1–E3)."""
+def endpoints_v2(r: dict, set_name: str) -> dict:
+    """Primary endpoints of protocol v2 (one set): Δ CLIP and Δ FID at N = 16 vs N = 1 for each
+    verifier rule, Holm-corrected together over the 2 metrics × 3 rules = 6 tests. Guard as in v1:
+    KID-DINOv2 at N = 16 non-inferior to N = 1 with a margin of 10 % of KID-DINOv2 at N = 1.
+    """
+    pv, eff = {}, {}
+    for metric in ("clip_cos", "fid"):
+        for rule in RULES:
+            d = r["rules"][rule]["16"][metric]["diff_vs_n1"]
+            pv[f"{metric}/{rule}"] = d["p_boot"]
+            eff[f"{metric}/{rule}"] = d
+    h = holm(pv)
+    v1_style = endpoints({set_name: r})["guard_kid_dino_n16_vs_n1"]
+    return {"set": set_name,
+            "primary_n16_vs_n1": {k: {**eff[k], **h[k],
+                                      "direction": "higher is better" if k.startswith("clip") else
+                                                   "lower is better"} for k in eff},
+            "guard_kid_dino_n16_vs_n1": {k.split("/", 1)[1]: v for k, v in v1_style.items()}}
+
+
+def anchor_per_image(sc_a: dict, sc_b: dict, label_a: str, label_b: str, ka: int = 0, kb: int = 0,
+                     with_fid: bool = False, b_kid: int = B_KID) -> dict:
+    """Paired per-image differences a − b on the same tiles (E1–E3); KID of each; with_fid: FID
+    of each and the paired FID difference with a tile-bootstrap CI."""
     T = sc_a["evaluators.clip_cos"].shape[0]
     W = tile_weights(T, B_MEAN, SEED_MEAN)
     out = {"a": label_a, "b": label_b}
@@ -124,6 +192,13 @@ def anchor_per_image(sc_a: dict, sc_b: dict, label_a: str, label_b: str, ka: int
         if f"{f}.samples" in sc_a and f"{f}.samples" in sc_b:
             gt = sc_a[f"{f}.gt"]
             out[name] = {"a": kid(sc_a[f"{f}.samples"][:, ka], gt), "b": kid(sc_b[f"{f}.samples"][:, kb], gt)}
+    if with_fid and "inception.samples" in sc_a and "inception.samples" in sc_b:
+        gt = sc_a["inception.gt"]
+        x = {"a": sc_a["inception.samples"][:, ka], "b": sc_b["inception.samples"][:, kb]}
+        full = fid_resampled(x, gt, np.ones((1, T)))
+        boot = fid_resampled(x, gt, tile_weights(T, b_kid, SEED_KID))
+        out["fid"] = {"a": float(full["a"][0]), "b": float(full["b"][0]),
+                      "diff": summarize(float(full["a"][0] - full["b"][0]), boot["a"] - boot["b"])}
     return out
 
 

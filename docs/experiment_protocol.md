@@ -231,3 +231,10 @@ pre-registered analysis. FID at these sample sizes is biased upward and is not c
 full-split FID. The output reports, as references at the same size, the FID between two random
 halves of the real tiles and the FID of the fp32 baseline images on the R2000 tiles.
 
+### Change of plan after the results (2026-11-12)
+
+The [final full-split run](#final-full-split-run) (V2 at N = 4 with Ω-XL on all of Git-Rand) is
+**not run**. After the supervision meeting of 2026-11-12, the main experiment is Study 2
+([experiment_protocol_v2.md](experiment_protocol_v2.md)): TerraDiT-Ω-B, all of Git-Rand, all N
+up to 16 and all three rules, with FID as a primary endpoint. The results of this protocol
+(R2000, S500) are unchanged and are reported as the pilot study.

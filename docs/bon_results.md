@@ -1,5 +1,9 @@
 # Best-of-N results: TerraDiT-Ω-XL on Git-Rand and Git-Spatial
 
+**Pilot study (Study 1).** The main experiment is Study 2, TerraDiT-Ω-B on all of Git-Rand with
+FID as a primary endpoint ([experiment_protocol_v2.md](experiment_protocol_v2.md)). The
+"final full-split run" listed under Next below was replaced by Study 2.
+
 Results of the experiments fixed in advance by [experiment_protocol.md](experiment_protocol.md)
 (version 1 with amendments 1 and 2, all committed before the analysis ran).
 

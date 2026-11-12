@@ -5,6 +5,11 @@
     python scripts/06_score_bon.py --run S500_fp32_k0         # anchor 3
     python scripts/06_score_bon.py --run R2000_baseline_fp32  # anchors 1-2: fp32 baseline images on R2000
 
+Protocol v2 (Study 2):
+    python scripts/06_score_bon.py --run RFULL_omega_base                 # 238,912 samples
+    python scripts/06_score_bon.py --run RFULL_omega_base_fp32_k0         # same-noise anchor, 500 tiles
+    python scripts/06_score_bon.py --run RFULL_omega_base_baseline_fp32   # paper-protocol baseline images
+
 Each component (verifiers, evaluators, inception, dino) is saved separately under
 runs/bon/<run>/scores/ and skipped if present, so scoring resumes.
 """
@@ -19,9 +24,11 @@ from eotts.data.git10m_subset import Git10MSubset
 from eotts.scoring.score_run import score_images
 
 ap = argparse.ArgumentParser()
-ap.add_argument("--run", required=True, help="R2000 | S500 | S500_fp32_k0 | R2000_baseline_fp32 | *_smoke")
+ap.add_argument("--run", required=True, help="R2000 | S500 | S500_fp32_k0 | R2000_baseline_fp32 | "
+                                             "RFULL_omega_base[_fp32_k0|_baseline_fp32] | *_smoke")
 ap.add_argument("--out-root", default="runs/bon")
-ap.add_argument("--baseline-images", default="runs/baseline/omega_xl_random_omega/images")
+ap.add_argument("--baseline-images", default=None,
+                help="default: runs/baseline/<model>_random_omega/images, model from the run name")
 ap.add_argument("--data-root", default="data/terradit")
 ap.add_argument("--subset-root", default="data/git10m_subset")
 ap.add_argument("--batch-size", type=int, default=32)
@@ -34,9 +41,11 @@ set_name = args.run.split("_")[0]
 s = load_set(set_name, args.data_root)
 run_dir = os.path.join(args.out_root, args.run)
 
-if args.run.startswith("R2000_baseline_fp32"):
+if "_baseline_fp32" in args.run:
+    model = "omega_base" if "_omega_base" in args.run else "omega_xl"
+    images = args.baseline_images or os.path.join("runs", "baseline", f"{model}_random_omega", "images")
     tiles, ks = s["tiles"][:args.limit_tiles] if args.limit_tiles else s["tiles"], [0]
-    image_path = lambda t, k: os.path.join(args.baseline_images, t["stem"] + ".png")
+    image_path = lambda t, k: os.path.join(images, t["stem"] + ".png")
 else:
     gen = json.load(open(os.path.join(run_dir, "generation.json"), encoding="utf-8"))
     tiles, ks = s["tiles"][:gen["num_tiles"]], gen["sample_ids"]
