@@ -2,6 +2,12 @@
 
 Kernel and estimator follow torchmetrics.image.kid exactly: cubic polynomial kernel
 k(x, y) = (x·y / d + 1)^3 and the unbiased MMD² estimator, averaged over random subsets.
+
+``resampled_mmd2_parts`` runs in float64 NumPy by default. With ``device`` set (e.g. "cuda")
+it runs in float32 PyTorch with TF32 disabled, and the final reductions in float64. At the
+full Git-Rand size (14,932 tiles) the float64 CPU path needs ~70 TFLOP per analysis, the GPU
+path minutes. The two paths agree to < 1e-4 relative on MMD² differences
+(tests/test_bon_stats.py), far below the bootstrap CI widths.
 """
 from __future__ import annotations
 
@@ -33,7 +39,7 @@ def kid(fake: np.ndarray, real: np.ndarray, subset_size: int = 1000, subsets: in
     return {"kid": float(vals.mean()), "kid_std": float(vals.std()), "kid_subset_size": int(k)}
 
 
-def resampled_mmd2_parts(fake: np.ndarray, real: np.ndarray, weights: np.ndarray) -> np.ndarray:
+def resampled_mmd2_parts(fake: np.ndarray, real: np.ndarray, weights: np.ndarray, device=None) -> np.ndarray:
     """Fake-dependent part of the unbiased MMD² under tile resampling, one value per resample.
 
     ``weights`` is (B, n): how many times each tile is drawn in each bootstrap resample. Tiles
@@ -44,15 +50,44 @@ def resampled_mmd2_parts(fake: np.ndarray, real: np.ndarray, weights: np.ndarray
     term is the same for every selection rule on the same resample, so differences between
     rules are exact differences of MMD².
     """
-    kff = poly_kernel(fake, fake)
-    kfr = poly_kernel(fake, real)
     w = weights.astype(np.float64)                      # (B, n)
     n = w.sum(1)                                        # n per resample (constant)
-    ff = ((w @ kff) * w).sum(1) - (w * w * np.diag(kff)[None]).sum(1)
     ff_count = n * n - (w * w).sum(1)
-    fr = ((w @ kfr) * w).sum(1)
+    if device is None:
+        kff = poly_kernel(fake, fake)
+        kfr = poly_kernel(fake, real)
+        ff = ((w @ kff) * w).sum(1) - (w * w * np.diag(kff)[None]).sum(1)
+        fr = ((w @ kfr) * w).sum(1)
+    else:
+        ff, fr = _resampled_parts_torch(fake, real, weights, device)
     with np.errstate(divide="ignore", invalid="ignore"):
         return np.where(ff_count > 0, ff / np.where(ff_count > 0, ff_count, 1), np.nan) - 2 * fr / (n * n)
+
+
+def _resampled_parts_torch(fake, real, weights, device):
+    import torch
+    prev = torch.backends.cuda.matmul.allow_tf32
+    torch.backends.cuda.matmul.allow_tf32 = False
+    try:
+        with torch.no_grad():
+            d = fake.shape[1]
+            f = torch.as_tensor(np.ascontiguousarray(fake), dtype=torch.float32, device=device)
+            r = torch.as_tensor(np.ascontiguousarray(real), dtype=torch.float32, device=device)
+            w = torch.as_tensor(np.asarray(weights), dtype=torch.float32, device=device)  # exact ints
+            out = {}
+            for name, other in (("ff", f), ("fr", r)):
+                k = f @ other.T
+                k.div_(d).add_(1.0).pow_(3)
+                wk = (w @ k).double()
+                out[name] = (wk * w.double()).sum(1)
+                if name == "ff":
+                    out["diag"] = (w.double() ** 2 * torch.diagonal(k).double()[None]).sum(1)
+                del k, wk
+            ff = (out["ff"] - out["diag"]).cpu().numpy()
+            fr = out["fr"].cpu().numpy()
+    finally:
+        torch.backends.cuda.matmul.allow_tf32 = prev
+    return ff, fr
 
 
 def full_sample_mmd2_part(fake: np.ndarray, real: np.ndarray) -> float:

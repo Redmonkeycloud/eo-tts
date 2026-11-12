@@ -101,3 +101,32 @@ def test_fid_matches_torchmetrics():
     theirs = float(_compute_fid(torch.tensor(mu1), torch.tensor(s1), torch.tensor(mu2), torch.tensor(s2)))
     assert fid(a, b) == pytest.approx(theirs, rel=1e-8)
     assert abs(fid(a, a)) < 1e-6
+
+
+def test_fid_resampled_equals_fid_on_repeated_rows():
+    from eotts.stats.fid import fid, fid_full_sample, fid_resampled
+    rng = np.random.default_rng(6)
+    T, d = 200, 24
+    real = rng.gamma(2.0, 1.0, (T, d))
+    f1, f2 = real * 0.9 + rng.normal(0, 0.5, (T, d)), rng.gamma(2.2, 1.0, (T, d))
+    assert fid_full_sample({"a": f1}, real)["a"] == pytest.approx(fid(f1, real), rel=1e-9)
+    W = tile_weights(T, 4, 1)
+    r = fid_resampled({"a": f1, "b": f2}, real, W)
+    for b, w in enumerate(W):
+        idx = np.repeat(np.arange(T), w)
+        assert r["a"][b] == pytest.approx(fid(f1[idx], real[idx]), rel=1e-9)
+        assert r["b"][b] == pytest.approx(fid(f2[idx], real[idx]), rel=1e-9)
+
+
+def test_resampled_parts_torch_float32_matches_float64():
+    rng = np.random.default_rng(7)
+    T, d = 600, 256
+    real = rng.gamma(1.0, 0.4, (T, d))                      # non-negative, like Inception pool features
+    f1 = np.abs(real + rng.normal(0, 0.15, (T, d)))
+    f2 = np.abs(real * 1.05 + rng.normal(0, 0.15, (T, d)))
+    W = np.vstack([np.ones((1, T), np.int32), tile_weights(T, 20, 3)])
+    a64, b64 = resampled_mmd2_parts(f1, real, W), resampled_mmd2_parts(f2, real, W)
+    a32, b32 = (resampled_mmd2_parts(f1, real, W, device="cpu"),
+                resampled_mmd2_parts(f2, real, W, device="cpu"))
+    diff64, diff32 = a64 - b64, a32 - b32
+    assert np.abs(diff32 - diff64).max() < 1e-4 * np.abs(diff64).max()

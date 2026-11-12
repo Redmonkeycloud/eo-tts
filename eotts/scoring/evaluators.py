@@ -38,14 +38,24 @@ class ClipEval:
 
 
 class PairwiseEval:
-    """E2 LPIPS (SqueezeNet, inputs in [−1, 1]) and E3 SSIM (data range 1) against ground truth."""
+    """E2 LPIPS (SqueezeNet, inputs in [−1, 1]) and E3 SSIM (data range 1) against ground truth.
+
+    Stateless: the torchmetrics *modules* accumulate state on every call (SSIM keeps a list of
+    all per-image values, LPIPS running sums), which made each call slower as a run went on
+    (E1–E3 grew from ~1.5 s to ~13 s per batch over R2000). We call the same LPIPS network
+    batched and the functional SSIM instead. Values are unchanged: batched LPIPS differs from
+    the per-image module by float32 rounding (< 1e-5; LPIPS is reported to 4 decimals), functional
+    SSIM by 0 (tests/test_evaluators.py).
+    """
 
     def __init__(self, device):
         from torchmetrics.image.lpip import LearnedPerceptualImagePatchSimilarity
-        from torchmetrics.image import StructuralSimilarityIndexMeasure
-        self.lpips = LearnedPerceptualImagePatchSimilarity(net_type="squeeze").to(device)
-        self.ssim = StructuralSimilarityIndexMeasure(data_range=1.0, reduction="none").to(device)
+        self.lpips_net = LearnedPerceptualImagePatchSimilarity(net_type="squeeze").net.to(device).eval()
         self.device = device
+
+    def ssim(self, gen, gt):
+        from torchmetrics.functional.image import structural_similarity_index_measure
+        return structural_similarity_index_measure(gen, gt, data_range=1.0, reduction="none")
 
     @torch.no_grad()
     def __call__(self, images, gts) -> tuple[np.ndarray, np.ndarray]:
@@ -54,7 +64,7 @@ class PairwiseEval:
         gen = torch.stack([to_u8(i.convert("RGB").resize(size, Image.BILINEAR) if i.size != size else i)
                            for i in images]).to(self.device).float() / 255
         gt = torch.stack([to_u8(g) for g in gts]).to(self.device).float() / 255
-        lp = np.array([float(self.lpips(2 * g[None] - 1, 2 * t[None] - 1)) for g, t in zip(gen, gt)])
+        lp = self.lpips_net(2 * gen - 1, 2 * gt - 1).flatten().float().cpu().numpy()
         ss = self.ssim(gen, gt).float().cpu().numpy()
         return lp, ss
 

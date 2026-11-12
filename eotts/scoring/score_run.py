@@ -5,6 +5,10 @@ missing, so scoring resumes and a new verifier can be added later without touchi
 
 Arrays are (tiles, K) for scores and (tiles, K, D) for features, in protocol tile order.
 Ground-truth features and the verifiers' scores of the ground-truth tiles are stored too.
+
+Within a component, progress is checkpointed to ``<component>.partial.npz`` every
+``ckpt_every`` batches (written atomically), so an interrupted pass over the 238,912 images of
+the full split resumes where it stopped instead of from the start.
 """
 from __future__ import annotations
 
@@ -22,6 +26,37 @@ from eotts.provenance import provenance
 def _batches(n, bs):
     for i in range(0, n, bs):
         yield slice(i, min(i + bs, n))
+
+
+def _resumable(sdir, tag, n, batch_size, compute, ckpt_every=200):
+    """Run compute(slice) -> {field: array} over n items in batches, checkpointing as it goes."""
+    part = os.path.join(sdir, tag + ".partial.npz")
+    arrays, start = {}, 0
+    if os.path.exists(part):
+        z = np.load(part)
+        if int(z["__n"]) != n or int(z["__batch"]) != batch_size:
+            raise ValueError(f"{part} was written for n={int(z['__n'])}, batch={int(z['__batch'])}")
+        start = int(z["__done"])
+        arrays = {k: z[k] for k in z.files if not k.startswith("__")}
+        print(f"[score] {tag}: resuming at item {start}/{n}")
+
+    def checkpoint(done):
+        tmp = part + ".tmp.npz"
+        np.savez(tmp, __done=done, __n=n, __batch=batch_size, **arrays)
+        os.replace(tmp, part)
+
+    batches = [sl for sl in _batches(n, batch_size) if sl.start >= start]
+    for b, sl in enumerate(tqdm(batches, desc=tag, initial=start // batch_size,
+                                total=start // batch_size + len(batches))):
+        res = compute(sl)
+        for k, v in res.items():
+            v = np.asarray(v)
+            if k not in arrays:
+                arrays[k] = np.zeros((n,) + v.shape[1:], np.float32)
+            arrays[k][sl] = v
+        if (b + 1) % ckpt_every == 0:
+            checkpoint(sl.stop)
+    return arrays, part
 
 
 def score_images(*, tiles, image_path, ks, out_dir, subset, device, batch_size=32,
@@ -56,13 +91,13 @@ def score_images(*, tiles, image_path, ks, out_dir, subset, device, batch_size=3
         return os.path.exists(os.path.join(sdir, name + ".npz"))
 
     if "verifiers" in components and not done("verifiers"):
-        out = {}
+        out, parts = {}, []
         for name in VERIFIERS:
             v = ClipVerifier.load(name, device)
-            s = np.zeros(len(pairs), np.float32)
-            for sl in tqdm(list(_batches(len(pairs), batch_size)), desc=name):
-                s[sl] = v.score(imgs(sl), caps_of(sl)).numpy()
-            out[name] = s.reshape(T, K)
+            arr, part = _resumable(sdir, f"verifiers_{name}", len(pairs), batch_size,
+                                   lambda sl: {"s": v.score(imgs(sl), caps_of(sl)).numpy()})
+            out[name] = arr["s"].reshape(T, K)
+            parts.append(part)
             # ground truth: own-caption score and its rank among all captions of the set
             tf = torch.cat([v.text_features(captions[sl]) for sl in _batches(T, 256)])
             gf = torch.cat([v.image_features(gts(sl)) for sl in _batches(T, batch_size)])
@@ -72,33 +107,36 @@ def score_images(*, tiles, image_path, ks, out_dir, subset, device, batch_size=3
             del v
             torch.cuda.empty_cache() if device == "cuda" else None
         save("verifiers", **out)
+        for p in parts:
+            os.remove(p) if os.path.exists(p) else None
 
     if "evaluators" in components and not done("evaluators"):
         ce, pw = ClipEval(device), PairwiseEval(device)
-        clip = np.zeros(len(pairs), np.float32)
-        lp = np.zeros(len(pairs), np.float32)
-        ss = np.zeros(len(pairs), np.float32)
         gt_cache = {}
-        for sl in tqdm(list(_batches(len(pairs), batch_size)), desc="E1-E3"):
+
+        def e123(sl):
             im = imgs(sl)
-            clip[sl] = ce(im, caps_of(sl))
             tid = [i // K for i in range(sl.start, sl.stop)]
             for i in set(tid) - set(gt_cache):
                 gt_cache[i] = subset[tiles[i]["hf_idx"]]["image"].convert("RGB")
             l, s_ = pw(im, [gt_cache[i] for i in tid])
-            lp[sl], ss[sl] = l, s_
             for i in [i for i in gt_cache if i < min(tid)]:
                 del gt_cache[i]
-        save("evaluators", clip_cos=clip.reshape(T, K), lpips=lp.reshape(T, K), ssim=ss.reshape(T, K))
+            return {"clip": ce(im, caps_of(sl)), "lp": l, "ss": s_}
+
+        arr, part = _resumable(sdir, "evaluators", len(pairs), batch_size, e123)
+        save("evaluators", clip_cos=arr["clip"].reshape(T, K), lpips=arr["lp"].reshape(T, K),
+             ssim=arr["ss"].reshape(T, K))
+        os.remove(part) if os.path.exists(part) else None
         del ce, pw
 
     for name, cls in (("inception", InceptionFeatures), ("dino", DinoFeatures)):
         if name in components and not done(name):
             fx = cls(device)
-            feats = [fx(imgs(sl)) for sl in tqdm(list(_batches(len(pairs), batch_size)), desc=name)]
+            arr, part = _resumable(sdir, name, len(pairs), batch_size, lambda sl: {"f": fx(imgs(sl))})
             gtf = [fx(gts(sl)) for sl in tqdm(list(_batches(T, batch_size)), desc=name + "[gt]")]
-            f = np.concatenate(feats).astype(np.float32)
-            save(name, samples=f.reshape(T, K, -1), gt=np.concatenate(gtf).astype(np.float32))
+            save(name, samples=arr["f"].reshape(T, K, -1), gt=np.concatenate(gtf).astype(np.float32))
+            os.remove(part) if os.path.exists(part) else None
             del fx
     return sdir
 
@@ -107,7 +145,7 @@ def load_scores(out_dir) -> dict:
     sdir = os.path.join(out_dir, "scores")
     out = {}
     for f in sorted(os.listdir(sdir)):
-        if f.endswith(".npz"):
+        if f.endswith(".npz") and ".partial" not in f:
             z = np.load(os.path.join(sdir, f))
             for k in z.files:
                 out[f"{f[:-4]}.{k}"] = z[k]
