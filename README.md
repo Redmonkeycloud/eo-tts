@@ -55,7 +55,8 @@ If you use this repository, please cite their work:
 | Pilot (Study 1), Ω-XL: Best-of-N on 500 Git-Spatial tiles (held-out region), with fp32 anchor | done: CLIP +0.0116 but KID-DINOv2 +37 %, guard fails ([results](docs/bon_results.md)) |
 | Full Git-Spatial baseline | not run; Spatial is used as a held-out test set for search ([why](docs/experiment_protocol.md#anchors)) |
 | Study 2 protocol: TerraDiT-Ω-B, all 14,932 Git-Rand tiles, N up to 16, FID as a primary endpoint | done, fixed before any run ([protocol v2](docs/experiment_protocol_v2.md)) |
-| Study 2 runs: Ω-B baseline, 238,912 Best-of-N samples, scoring, analysis | next (about 9 days of GPU time) |
+| Study 2, anchor 1: paper-protocol baseline, TerraDiT-Ω-B, Git-Rand | done: FID 21.51 vs 21.97 in the paper's Ω-B ablation ([details](docs/baseline_reproduction.md#terradit-ω-b-on-git-rand-study-2-anchor-1)) |
+| Study 2 runs: 238,912 Best-of-N samples, scoring, analysis | running (about 8 days of GPU time) |
 | Rollover Budget Forcing with custom allocation rules | later |
 
 ## Baseline results

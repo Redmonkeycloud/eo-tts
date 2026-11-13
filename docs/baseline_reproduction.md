@@ -156,3 +156,26 @@ python scripts/01_download_assets.py
 python scripts/02_build_git10m_subset.py --split random
 python scripts/04_run_baseline.py --split random --batch-size 32
 ```
+
+## TerraDiT-Ω-B on Git-Rand (Study 2, anchor 1)
+
+Same protocol, script and settings as the Ω-XL run above (fp32, 100 Euler steps, no guidance,
+batch 32, seed 42, all 14,932 tiles), with the released `omega_base` weights
+(SiT-B/2; loaded with 0 missing and 0 unexpected keys). Run on 2026-11-12/13.
+Raw output: [results/baseline/omega_base_random_omega.json](../results/baseline/omega_base_random_omega.json).
+
+| Metric | Ours | Paper, Ω-B ablation (Table 3) | Ours − paper |
+| --- | --- | --- | --- |
+| FID ↓ | 21.51 | 21.97 | −0.46 |
+| LPIPS ↓ | 0.3394 | not reported | – |
+| SSIM ↑ | 0.2636 | 0.2632 | +0.0004 |
+| CLIP score (cosine) ↑ | 0.2828 | 0.2759 | +0.0069 |
+| KID ×10³ ↓ | 12.16 ± 1.15 | not reported | – |
+
+The paper's ablation table does not name the split and gives no LPIPS, and it is not stated
+whether the released weights are the ablation checkpoint, so this is a plausibility check, not
+a reproduction claim (protocol v2, anchor 1). It is consistent on every metric the table gives:
+FID within 0.5, SSIM equal to the fourth decimal, and the same CLIP offset as for Ω-XL (+0.0069
+here, +0.0070 there), which points again to the evaluation code rather than to the samples (see
+"Why CLIP score differs by 0.007"). FID is 2.2× the Ω-XL value (21.51 vs 9.81); LPIPS and SSIM
+are almost the same as for Ω-XL (0.3394 vs 0.3401, 0.2636 vs 0.2669).
