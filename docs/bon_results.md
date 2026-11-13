@@ -103,17 +103,17 @@ should be with independent seeds (`selected_index_hist` in the JSON files).
 
 Requested after the results; recorded as exploratory analysis E-1 in the protocol. Output:
 [`results/bon/exploratory_fid.json`](../results/bon/exploratory_fid.json), 100 tile-bootstrap
-resamples for N = 16 vs N = 1. FID at these sizes is biased upward: values are comparable only
+resamples for N = 16 vs N = 1 (N = 2, 4, 8: point estimates only). FID at these sizes is biased upward: values are comparable only
 within a set, never with the full-split 9.81 or the paper's 9.25.
 
-| Set / verifier | FID N = 1 | FID N = 16 | Δ [95 % CI] |
-| --- | --- | --- | --- |
-| R2000 / V1 | 29.38 | 28.79 | −0.59 [−1.41, +0.03] |
-| R2000 / V2 | 29.38 | 29.90 | +0.51 [−0.58, +1.26] |
-| R2000 / V1+V2 | 29.38 | 29.45 | +0.06 [−1.01, +0.77] |
-| S500 / V1 | 68.83 | 66.73 | −2.10 [−5.57, +1.74] |
-| S500 / V2 | 68.83 | 68.80 | −0.03 [−3.60, +3.77] |
-| S500 / V1+V2 | 68.83 | 66.81 | −2.02 [−6.14, +1.09] |
+| Set / verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 | Δ N=16 − N=1 [95 % CI] |
+| --- | --- | --- | --- | --- | --- | --- |
+| R2000 / V1 RemoteCLIP | 29.38 | 28.99 | 29.33 | 28.86 | 28.79 | −0.59 [−1.41, +0.03] |
+| R2000 / V2 GeoRSCLIP | 29.38 | 29.05 | 29.05 | 29.41 | 29.90 | +0.51 [−0.58, +1.26] |
+| R2000 / V1+V2 | 29.38 | 29.05 | 28.90 | 28.66 | 29.45 | +0.06 [−1.01, +0.77] |
+| S500 / V1 RemoteCLIP | 68.83 | 68.28 | 66.29 | 66.66 | 66.73 | −2.10 [−5.57, +1.74] |
+| S500 / V2 GeoRSCLIP | 68.83 | 68.15 | 66.55 | 67.48 | 68.80 | −0.03 [−3.60, +3.77] |
+| S500 / V1+V2 | 68.83 | 68.15 | 66.67 | 66.52 | 66.81 | −2.02 [−6.14, +1.09] |
 
 No FID change is distinguishable from zero. The bf16 sample 0 and the fp32 baseline images on the
 same R2000 tiles already differ by 0.34 FID (29.38 vs 29.04), which is the size of the effects

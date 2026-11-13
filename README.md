@@ -97,16 +97,18 @@ FID was added after the pilot results as an exploratory analysis (not a pre-regi
 endpoint). FID at 2,000 or 500 images is biased upward, so these values are comparable only
 within a set, not with the full-split values above:
 
-| Set / verifier | FID N = 1 | FID N = 16 | Δ [95 % CI] |
-| --- | --- | --- | --- |
-| R2000 / V1 RemoteCLIP | 29.38 | 28.79 | −0.59 [−1.41, +0.03] |
-| R2000 / V2 GeoRSCLIP | 29.38 | 29.90 | +0.51 [−0.58, +1.26] |
-| R2000 / V1+V2 | 29.38 | 29.45 | +0.06 [−1.01, +0.77] |
-| S500 / V1 RemoteCLIP | 68.83 | 66.73 | −2.10 [−5.57, +1.74] |
-| S500 / V2 GeoRSCLIP | 68.83 | 68.80 | −0.03 [−3.60, +3.77] |
-| S500 / V1+V2 | 68.83 | 66.81 | −2.02 [−6.14, +1.09] |
+| Set / verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 | Δ N=16 − N=1 [95 % CI] |
+| --- | --- | --- | --- | --- | --- | --- |
+| R2000 / V1 RemoteCLIP | 29.38 | 28.99 | 29.33 | 28.86 | 28.79 | −0.59 [−1.41, +0.03] |
+| R2000 / V2 GeoRSCLIP | 29.38 | 29.05 | 29.05 | 29.41 | 29.90 | +0.51 [−0.58, +1.26] |
+| R2000 / V1+V2 | 29.38 | 29.05 | 28.90 | 28.66 | 29.45 | +0.06 [−1.01, +0.77] |
+| S500 / V1 RemoteCLIP | 68.83 | 68.28 | 66.29 | 66.66 | 66.73 | −2.10 [−5.57, +1.74] |
+| S500 / V2 GeoRSCLIP | 68.83 | 68.15 | 66.55 | 67.48 | 68.80 | −0.03 [−3.60, +3.77] |
+| S500 / V1+V2 | 68.83 | 68.15 | 66.67 | 66.52 | 66.81 | −2.02 [−6.14, +1.09] |
 
-No FID change is distinguishable from zero at these sizes. Study 2 therefore runs on all 14,932
+N = 1 is the same sample for every verifier. CIs were computed for the N = 16 comparison only
+(100 tile resamples). No FID change is distinguishable from zero at these sizes, and the values
+do not move steadily with N. Study 2 therefore runs on all 14,932
 Git-Rand tiles, with FID as a primary endpoint ([protocol v2](docs/experiment_protocol_v2.md)).
 Raw output: [results/bon/exploratory_fid.json](results/bon/exploratory_fid.json).
 
