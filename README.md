@@ -61,22 +61,27 @@ If you use this repository, please cite their work:
 
 ## Baseline results
 
-TerraDiT-Ω-XL re-run with the authors' code and weights on the full Git-Rand split
-(14,932 tiles, 100 Euler steps, no guidance, batch 32, seed 42, fp32):
+TerraDiT-Ω-XL and TerraDiT-Ω-B re-run with the authors' code and weights on the full Git-Rand
+split (14,932 tiles, 100 Euler steps, no guidance, batch 32, seed 42, fp32, RTX 3060):
 
-| Metric | Ours | Paper | Ours − paper |
-| --- | --- | --- | --- |
-| FID ↓ | 9.81 | 9.25 | +0.56 |
-| LPIPS ↓ | 0.3401 | 0.3438 | −0.0037 |
-| SSIM ↑ | 0.2669 | 0.2665 | +0.0004 |
-| CLIP score (cosine) ↑ | 0.2882 | 0.2812 | +0.0070 |
-| KID ×10³ ↓ | 3.98 ± 0.41 | not reported | – |
+| Metric | Ω-XL ours | Ω-XL paper | Ω-B ours | Ω-B paper (ablation) |
+| --- | --- | --- | --- | --- |
+| FID ↓ | 9.81 | 9.25 | 21.51 | 21.97 |
+| LPIPS ↓ | 0.3401 | 0.3438 | 0.3394 | not reported |
+| SSIM ↑ | 0.2669 | 0.2665 | 0.2636 | 0.2632 |
+| CLIP score (cosine) ↑ | 0.2882 | 0.2812 | 0.2828 | 0.2759 |
+| KID ×10³ ↓ | 3.98 ± 0.41 | not reported | 12.16 ± 1.15 | not reported |
+| Generation time | 48.3 h (11.6 s/image) | – | 15.8 h (3.81 s/image) | – |
 
-The per-image metrics match the paper; FID is 6 % higher. What each metric measures, what
-the paper leaves unstated, and the likely reasons for the gap (fp16 release weights, seed,
-software and hardware) are in [docs/baseline_reproduction.md](docs/baseline_reproduction.md).
-Raw output: [results/baseline/omega_xl_random_omega.json](results/baseline/omega_xl_random_omega.json).
-All later experiments are compared against this re-run.
+The per-image metrics match the paper for both models. FID is 6 % higher than the paper for
+Ω-XL and 2 % lower for Ω-B, and our CLIP score is 0.007 higher for both, which points to the
+evaluation code rather than the samples. The Ω-B paper values come from the paper's ablation
+(Table 3): it does not name the split or give LPIPS, so they are a plausibility check, not a
+reproduction target. What each metric measures, what the paper leaves unstated, and the likely
+reasons for the gaps are in [docs/baseline_reproduction.md](docs/baseline_reproduction.md).
+Raw output: [results/baseline/omega_xl_random_omega.json](results/baseline/omega_xl_random_omega.json),
+[results/baseline/omega_base_random_omega.json](results/baseline/omega_base_random_omega.json).
+Each Best-of-N study is compared against the re-run of its own base model.
 
 ## Best-of-N results (pilot, Study 1: TerraDiT-Ω-XL on subsets)
 
