@@ -1,0 +1,85 @@
+{
+  "run": "omega_base_random_omega",
+  "model": "omega_base",
+  "family": "omega",
+  "split": "random",
+  "condition_type": "omega",
+  "metrics": {
+    "num_tiles": 14932,
+    "num_rows": 14932,
+    "fid": 21.50708770751953,
+    "clip_score": 28.27965431790744,
+    "lpips": 0.3393793513316301,
+    "ssim": 0.2636056998562484,
+    "clip_cos": 0.2827965431790744,
+    "kid": 0.012164930813014507,
+    "kid_std": 0.0011506186565384269,
+    "kid_subset_size": 1000
+  },
+  "paper": null,
+  "delta_vs_paper": {},
+  "protocol": {
+    "num_steps": 100,
+    "cfg_scale": 0.0,
+    "sampler": "euler (terradit)",
+    "batch_size": 32,
+    "seed": 42,
+    "dtype": "fp32 (terradit default)",
+    "num_tiles": 14932,
+    "limit": null,
+    "image_source": "Git10MSubset (img_name-verified rows of the pinned snapshot)"
+  },
+  "timings": {
+    "generation_s": 57088.1,
+    "s_per_image": 3.823,
+    "metrics_s": 3208.0
+  },
+  "provenance_at_start": {
+    "eo_tts": {
+      "commit": "61e4480336f2bf09874cbf9c2185b3b12039c2f8",
+      "dirty": false
+    },
+    "terradit": {
+      "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+      "dirty": false
+    },
+    "env": {
+      "python": "3.14.0",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "torch": "2.9.1+cu126",
+      "cuda": "12.6",
+      "cudnn": 91002,
+      "gpu": "NVIDIA GeForce RTX 3060",
+      "gpu_mem_gb": 12.0,
+      "diffusers": "0.42.1",
+      "transformers": "5.21.0",
+      "torchmetrics": "1.9.0",
+      "huggingface_hub": "1.33.0",
+      "pyarrow": "22.0.0"
+    }
+  },
+  "provenance": {
+    "eo_tts": {
+      "commit": "61e4480336f2bf09874cbf9c2185b3b12039c2f8",
+      "dirty": false
+    },
+    "terradit": {
+      "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+      "dirty": false
+    },
+    "env": {
+      "python": "3.14.0",
+      "platform": "Windows-11-10.0.26300-SP0",
+      "torch": "2.9.1+cu126",
+      "cuda": "12.6",
+      "cudnn": 91002,
+      "gpu": "NVIDIA GeForce RTX 3060",
+      "gpu_mem_gb": 12.0,
+      "diffusers": "0.42.1",
+      "transformers": "5.21.0",
+      "torchmetrics": "1.9.0",
+      "huggingface_hub": "1.33.0",
+      "pyarrow": "22.0.0"
+    }
+  }
+}
