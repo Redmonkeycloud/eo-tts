@@ -93,6 +93,23 @@ region, the CLIP gain is the same but realism drops (KID-DINOv2 +37 %), which th
 guard counts as a failure. Full analysis, anchors and caveats:
 [docs/bon_results.md](docs/bon_results.md).
 
+FID was added after the pilot results as an exploratory analysis (not a pre-registered
+endpoint). FID at 2,000 or 500 images is biased upward, so these values are comparable only
+within a set, not with the full-split values above:
+
+| Set / verifier | FID N = 1 | FID N = 16 | Δ [95 % CI] |
+| --- | --- | --- | --- |
+| R2000 / V1 RemoteCLIP | 29.38 | 28.79 | −0.59 [−1.41, +0.03] |
+| R2000 / V2 GeoRSCLIP | 29.38 | 29.90 | +0.51 [−0.58, +1.26] |
+| R2000 / V1+V2 | 29.38 | 29.45 | +0.06 [−1.01, +0.77] |
+| S500 / V1 RemoteCLIP | 68.83 | 66.73 | −2.10 [−5.57, +1.74] |
+| S500 / V2 GeoRSCLIP | 68.83 | 68.80 | −0.03 [−3.60, +3.77] |
+| S500 / V1+V2 | 68.83 | 66.81 | −2.02 [−6.14, +1.09] |
+
+No FID change is distinguishable from zero at these sizes. Study 2 therefore runs on all 14,932
+Git-Rand tiles, with FID as a primary endpoint ([protocol v2](docs/experiment_protocol_v2.md)).
+Raw output: [results/bon/exploratory_fid.json](results/bon/exploratory_fid.json).
+
 ## Reproducing the paper baseline
 
 The baseline calls TerraDiT's own `generate.py` and `eval/metrics.py` in-process. The only

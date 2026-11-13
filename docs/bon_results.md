@@ -99,6 +99,39 @@ loss of realism there, through selection on a noisier signal. That second point 
 **No position bias.** At every N, the selected sample index is spread evenly over 0 … N−1, as it
 should be with independent seeds (`selected_index_hist` in the JSON files).
 
+## Exploratory: FID on the subsets (not an endpoint)
+
+Requested after the results; recorded as exploratory analysis E-1 in the protocol. Output:
+[`results/bon/exploratory_fid.json`](../results/bon/exploratory_fid.json), 100 tile-bootstrap
+resamples for N = 16 vs N = 1. FID at these sizes is biased upward: values are comparable only
+within a set, never with the full-split 9.81 or the paper's 9.25.
+
+| Set / verifier | FID N = 1 | FID N = 16 | Δ [95 % CI] |
+| --- | --- | --- | --- |
+| R2000 / V1 | 29.38 | 28.79 | −0.59 [−1.41, +0.03] |
+| R2000 / V2 | 29.38 | 29.90 | +0.51 [−0.58, +1.26] |
+| R2000 / V1+V2 | 29.38 | 29.45 | +0.06 [−1.01, +0.77] |
+| S500 / V1 | 68.83 | 66.73 | −2.10 [−5.57, +1.74] |
+| S500 / V2 | 68.83 | 68.80 | −0.03 [−3.60, +3.77] |
+| S500 / V1+V2 | 68.83 | 66.81 | −2.02 [−6.14, +1.09] |
+
+No FID change is distinguishable from zero. The bf16 sample 0 and the fp32 baseline images on the
+same R2000 tiles already differ by 0.34 FID (29.38 vs 29.04), which is the size of the effects
+above. At these sample sizes FID cannot resolve what KID resolves, which is why the protocol uses
+KID.
+
+One consequence matters for the S500 finding. For V2 on S500, both Inception-based measures, FID
+(−0.03) and KID-Inception (+0.86 ×10³, CI includes 0), show no loss of realism. The +37 % appears
+only in DINOv2 features. The realism loss is therefore established in one feature space. Whether it
+reflects something DINOv2 captures and Inception misses (Stein et al., 2023, find DINOv2 closer to
+human judgement) or a property of DINOv2 features alone is not yet settled. Next: a visual
+comparison of V2's selections against sample 0 on S500.
+
+The `fid_real_half_vs_half` field in that file is not a valid reference. The two halves hold
+different tiles at half the sample size, so the value is not a floor for generated-vs-real FID on
+the same tiles. It was removed from the script after this run. The valid same-size reference is
+the fp32 baseline on the R2000 tiles (29.04).
+
 ## Caveats
 
 - S500 is a single held-out region, with a longitude standard deviation of 1.3°, and has 500
@@ -108,6 +141,8 @@ should be with independent seeds (`selected_index_hist` in the JSON files).
 - The S500 subset KID values in `anchors.json` and `S500.json` (`n1_kid_subsets`) report
   `kid_std ≈ 0`. With 500 tiles, every 500-tile "subset" is the whole set, so that standard deviation
   carries no information. The bootstrap CIs above are the uncertainty to use.
+- The S500 realism loss is seen in DINOv2 features only. Inception-based FID and KID show no
+  change (see the exploratory FID section).
 - Two text-alignment verifiers only. The structural verifier for the geometry primitives (V3) is
   not part of this run.
 - One base model. All results are for TerraDiT-Ω-XL.

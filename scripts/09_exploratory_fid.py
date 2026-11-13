@@ -11,6 +11,9 @@ upward at small n and the bias also depends on the distribution, so even differe
 between rules at the same n can mislead (Chong & Forsyth, CVPR 2020). The numbers here
 are not comparable with the paper's or our full-split FID (9.81 on 14,932 tiles). As a
 same-size reference, the fp32 baseline images on the same R2000 tiles are scored too.
+(An earlier version also reported FID between two random halves of the real tiles as a
+"sampling floor"; it was removed because the halves hold different tiles at half the n, so
+it is not a floor for generated-vs-real FID on the same tiles.)
 """
 import argparse
 import json
@@ -63,9 +66,6 @@ for set_name in ("R2000", "S500"):
     T = len(real)
     r = {"tiles": T, "rules": {}}
 
-    # sampling floor: FID between two random halves of the real tiles, at n/2 each
-    perm = np.random.default_rng(args.seed).permutation(T)
-    r["fid_real_half_vs_half"] = fid(real[perm[: T // 2]], real[perm[T // 2:]])
 
     for rule in RULES:
         r["rules"][rule] = {}
@@ -110,7 +110,7 @@ for set_name, r in results["sets"].items():
         dtxt = (f"{diff['estimate']:+.2f} [{diff['ci_low']:+.2f}, {diff['ci_high']:+.2f}]" if diff
                 else f"{c['16']['fid'] - c['1']['fid']:+.2f}")
         L.append(f"| {rule} | " + " | ".join(f"{c[str(n)]['fid']:.2f}" for n in N_VALUES) + f" | {dtxt} |")
-    L += ["", f"Sampling floor, FID between two random halves of the real tiles: {r['fid_real_half_vs_half']:.2f}."]
+    L.append("")
     if "fp32_baseline_same_tiles" in r:
         L.append(f"fp32 baseline images on the same tiles (same-size reference for N = 1): "
                  f"{r['fp32_baseline_same_tiles']:.2f}.")
