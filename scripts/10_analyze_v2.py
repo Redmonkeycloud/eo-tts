@@ -1,12 +1,14 @@
-"""Study 2 analysis (docs/experiment_protocol_v2.md): TerraDiT-Ω-B, all of Git-Rand.
+"""Study 2 analysis (docs/experiment_protocol_v2.md with amendment 1): TerraDiT-Ω-B.
 
     python scripts/10_analyze_v2.py --check-gpu-kid      # step 0: GPU KID vs the committed pilot R2000.json
-    python scripts/10_analyze_v2.py                      # the Study 2 analysis
-    python scripts/10_analyze_v2.py --suffix _smoke      # smoke-test runs (output under runs/)
+    python scripts/10_analyze_v2.py --set S500
+    python scripts/10_analyze_v2.py --set R2000
+    python scripts/10_analyze_v2.py --set RFULL
+    python scripts/10_analyze_v2.py --set S500 --suffix _smoke   # smoke-test runs (output under runs/)
 
-Reads cached scores only; no image model is loaded. Writes results/bon_v2/RFULL.json,
-endpoints.json, anchors.json, R2000_prefix.json and report.md. Needs a GPU for KID at this size
-(protocol v2, Statistics); FID runs on the CPU in float64 (a few hours on 12 cores).
+Reads cached scores only; no image model is loaded. Writes results/bon_v2/<set>.json,
+endpoints_<set>.json, anchors_<set>.json and report_<set>.md.
+Needs a GPU for KID on RFULL (protocol v2, Statistics); FID runs on the CPU in float64.
 """
 import argparse
 import json
@@ -25,6 +27,7 @@ from eotts.provenance import REPO_ROOT, provenance
 from eotts.scoring.score_run import load_scores
 
 ap = argparse.ArgumentParser()
+ap.add_argument("--set", default="RFULL", choices=["S500", "R2000", "RFULL"])
 ap.add_argument("--runs-root", default="runs/bon")
 ap.add_argument("--out", default="results/bon_v2")
 ap.add_argument("--suffix", default="", help="e.g. _smoke")
@@ -82,7 +85,13 @@ if args.check_gpu_kid:
     log(f"worst deviation = {worst:.2e} of the CI width -> {'PASS' if res['pass'] else 'FAIL: use --device none'}")
     sys.exit(0)
 
-set_name, run = "RFULL", "RFULL_omega_base"
+set_name = args.set
+run = f"{set_name}_omega_base"
+# anchor runs per set (protocol v2, amendment 1): the paper-protocol baseline exists for Git-Rand
+# only; the same-noise fp32 anchor of R2000 (first 500 tiles) serves RFULL too, same tiles and seeds
+BASELINE_RUN = {"R2000": "R2000_omega_base_baseline_fp32", "RFULL": "RFULL_omega_base_baseline_fp32"}.get(set_name)
+SAME_NOISE_RUN = {"S500": "S500_omega_base_fp32_k0", "R2000": "R2000_omega_base_fp32_k0",
+                  "RFULL": "R2000_omega_base_fp32_k0"}[set_name]
 sc = scores(run)
 if sc is None:
     sys.exit(f"{args.runs_root}/{run}{args.suffix}/scores not found")
@@ -91,23 +100,16 @@ log(f"{run}: {T} tiles; KID on {device or 'cpu float64'}; FID float64 CPU, {B_KI
 r = analyze_set(sc, set_name, with_fid=True, device=device, progress=log, b_kid=B_KID_RUN)
 save(r, os.path.join(out_dir, f"{set_name}.json"))
 ends = endpoints_v2(r, set_name)
-save(ends, os.path.join(out_dir, "endpoints.json"))
+save(ends, os.path.join(out_dir, f"endpoints_{set_name}.json"))
 log("main analysis saved")
 
-prefix = None
-if T > 2000:
-    log("R2000 prefix")
-    prefix = analyze_set(head(sc, 2000), "RFULL[:2000]", with_fid=True, device=device, progress=log,
-                          b_kid=B_KID_RUN)
-    prefix["note"] = ("first 2,000 tiles of RFULL = the Study 1 R2000 tiles; verifier validity ranks are "
-                      "among all RFULL captions, not among 2,000")
-    save(prefix, os.path.join(out_dir, "R2000_prefix.json"))
+prefix = None     # R2000 is analysed as its own set (its samples are the first 2,000 tiles of RFULL)
 
 anchors = {}
 base_dir = os.path.join(REPO_ROOT, "results", "baseline", "omega_base_random_omega.json")
 if not os.path.exists(base_dir):
     base_dir = os.path.join("runs", "baseline", "omega_base_random_omega", "results.json")
-if os.path.exists(base_dir):
+if os.path.exists(base_dir) and set_name != "S500":
     b = json.load(open(base_dir, encoding="utf-8"))
     m = b["metrics"]
     anchors["1_paper_protocol_baseline"] = {
@@ -116,13 +118,13 @@ if os.path.exists(base_dir):
         "ours": {k: m[k] for k in ("fid", "sfid", "clip_cos", "lpips", "ssim", "kid") if k in m},
         "paper_ablation": {"fid": 21.97, "sfid": 6.25, "ssim": 0.2632, "clip_cos": 0.2759},
         "source": base_dir}
-base_sc = scores("RFULL_omega_base_baseline_fp32")
+base_sc = scores(BASELINE_RUN) if BASELINE_RUN else None
 if base_sc is not None:
     log("anchor 2")
     anchors["2_bf16_vs_fp32_baseline"] = anchor_per_image(
         sc, base_sc, "BoN sample 0 (bf16, per-sample seeds)", "fp32 paper-protocol baseline (different noise)",
         with_fid=True, b_kid=B_KID_RUN)
-a3_sc = scores("RFULL_omega_base_fp32_k0")
+a3_sc = scores(SAME_NOISE_RUN)
 if a3_sc is not None:
     log("anchor 3")
     n3 = a3_sc["evaluators.clip_cos"].shape[0]
@@ -130,7 +132,7 @@ if a3_sc is not None:
     tiles = load_set(set_name, args.data_root)["tiles"][:n3]
     a3["pixels"] = psnr_same_noise(
         [sample_path(os.path.join(args.runs_root, run + args.suffix), t["stem"], 0) for t in tiles],
-        [sample_path(os.path.join(args.runs_root, "RFULL_omega_base_fp32_k0" + args.suffix), t["stem"], 0)
+        [sample_path(os.path.join(args.runs_root, SAME_NOISE_RUN + args.suffix), t["stem"], 0)
          for t in tiles])
     anchors["3_bf16_vs_fp32_same_noise"] = a3
 
@@ -153,12 +155,12 @@ if "2_bf16_vs_fp32_baseline" in anchors and "fid" in anchors["2_bf16_vs_fp32_bas
     if d > hw:
         flags.append({"anchor": "2_bf16_vs_fp32_baseline", "metric": "fid", "abs_diff": d, "bon_ci_half_width": hw})
 anchors["stop_rule"] = {"rule": "stop if |anchor difference| exceeds the half-width of the narrowest N=16 vs N=1 "
-                                "CI for that metric on RFULL (E1-E3 on anchors 2-3, FID on anchor 2)",
+                                f"CI for that metric on {set_name} (E1-E3 on anchors 2-3, FID on anchor 2)",
                         "flags": flags, "stop": bool(flags)}
 anchors["provenance"] = provenance()
-save(anchors, os.path.join(out_dir, "anchors.json"))
+save(anchors, os.path.join(out_dir, f"anchors_{set_name}.json"))
 
-write_report_v2(r, ends, anchors, prefix, os.path.join(out_dir, "report.md"))
-log(f"-> {out_dir}/report.md")
+write_report_v2(r, ends, anchors, prefix, os.path.join(out_dir, f"report_{set_name}.md"), set_label=set_name)
+log(f"-> {out_dir}/report_{set_name}.md")
 if flags:
     print("[v2] STOP RULE TRIGGERED:", json.dumps(flags, indent=1))

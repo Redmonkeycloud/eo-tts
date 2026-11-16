@@ -56,7 +56,7 @@ If you use this repository, please cite their work:
 | Full Git-Spatial baseline | not run; Spatial is used as a held-out test set for search ([why](docs/experiment_protocol.md#anchors)) |
 | Study 2 protocol: TerraDiT-Ω-B, all 14,932 Git-Rand tiles, N up to 16, FID as a primary endpoint | done, fixed before any run ([protocol v2](docs/experiment_protocol_v2.md)) |
 | Study 2, anchor 1: paper-protocol baseline, TerraDiT-Ω-B, Git-Rand | done: FID 21.51 vs 21.97 in the paper's Ω-B ablation ([details](docs/baseline_reproduction.md#terradit-ω-b-on-git-rand-study-2-anchor-1)) |
-| Study 2 runs: 238,912 Best-of-N samples, scoring, analysis | running (about 8 days of GPU time) |
+| Study 2 runs with Ω-B: S500 and R2000 first (about 1.5 days), then all of Git-Rand ([amendment 1](docs/experiment_protocol_v2.md#amendment-1-2026-11-16-s500-and-r2000-with-ω-b-run-first)) | next (about 8 days of GPU time in total) |
 | Rollover Budget Forcing with custom allocation rules | later |
 
 ## Baseline results
@@ -197,13 +197,25 @@ Study 2 ([protocol v2](docs/experiment_protocol_v2.md)): TerraDiT-Ω-B on all of
 ```powershell
 python scripts/01_download_assets.py --models omega_base
 python scripts/04_run_baseline.py --model omega_base --split random --batch-size 32   # anchor 1, fp32, ~16 h
-python scripts/05_generate_bon.py --set RFULL --model omega_base                        # 238,912 samples, bf16, ~180 h
-python scripts/05_generate_bon.py --set RFULL --model omega_base --anchor-fp32 --anchor-tiles 500   # anchor 3
+# Best-of-N generation, in the order of amendment 1
+python scripts/05_generate_bon.py --set S500 --model omega_base                         # 8,000 samples, ~6 h
+python scripts/05_generate_bon.py --set S500 --model omega_base --anchor-fp32           # same-noise anchor, ~0.5 h
+python scripts/05_generate_bon.py --set R2000 --model omega_base                        # 32,000 samples, ~24 h
+python scripts/05_generate_bon.py --set R2000 --model omega_base --anchor-fp32 --anchor-tiles 500
+python scripts/05_generate_bon.py --set RFULL --model omega_base --reuse-from runs/bon/R2000_omega_base   # ~156 h
+# scoring
+python scripts/06_score_bon.py --run S500_omega_base
+python scripts/06_score_bon.py --run S500_omega_base_fp32_k0
+python scripts/06_score_bon.py --run R2000_omega_base
+python scripts/06_score_bon.py --run R2000_omega_base_fp32_k0
+python scripts/06_score_bon.py --run R2000_omega_base_baseline_fp32                     # anchor 2 on R2000
 python scripts/06_score_bon.py --run RFULL_omega_base
-python scripts/06_score_bon.py --run RFULL_omega_base_fp32_k0
-python scripts/06_score_bon.py --run RFULL_omega_base_baseline_fp32                     # anchor 2
+python scripts/06_score_bon.py --run RFULL_omega_base_baseline_fp32                     # anchor 2 on RFULL
+# analysis
 python scripts/10_analyze_v2.py --check-gpu-kid                                          # GPU KID vs the pilot numbers
-python scripts/10_analyze_v2.py                                                          # -> results/bon_v2/report.md
+python scripts/10_analyze_v2.py --set S500                                               # -> results/bon_v2/report_S500.md
+python scripts/10_analyze_v2.py --set R2000
+python scripts/10_analyze_v2.py --set RFULL
 ```
 
 Every step resumes after an interruption. Each sample has its own seed, derived from

@@ -5,9 +5,12 @@
     python scripts/05_generate_bon.py --set S500 --anchor-fp32    # sample 0 in fp32, same noise (~1.6 h)
     python scripts/05_generate_bon.py --set S500 --limit-tiles 2  # smoke test
 
-Protocol v2 (Study 2, TerraDiT-Ω-B on all of Git-Rand):
-    python scripts/05_generate_bon.py --set RFULL --model omega_base                      # 14,932 x 16
-    python scripts/05_generate_bon.py --set RFULL --model omega_base --anchor-fp32 --anchor-tiles 500
+Study 2 (TerraDiT-Ω-B; protocol v2 with amendment 1), in this order:
+    python scripts/05_generate_bon.py --set S500 --model omega_base                       # 500 x 16
+    python scripts/05_generate_bon.py --set S500 --model omega_base --anchor-fp32         # same-noise anchor
+    python scripts/05_generate_bon.py --set R2000 --model omega_base                      # 2,000 x 16
+    python scripts/05_generate_bon.py --set R2000 --model omega_base --anchor-fp32 --anchor-tiles 500
+    python scripts/05_generate_bon.py --set RFULL --model omega_base --reuse-from runs/bon/R2000_omega_base
 
 Resumable: rerun the same command after an interruption.
 Output: runs/bon/<set>[_<model>]/ (model omitted for omega_xl, the pilot study), with
@@ -30,6 +33,9 @@ ap.add_argument("--num-steps", type=int, default=100)
 ap.add_argument("--limit-tiles", type=int, default=None, help="first N tiles of the set (smoke test)")
 ap.add_argument("--anchor-tiles", type=int, default=None,
                 help="with --anchor-fp32: first N tiles of the set (protocol v2: 500); not a smoke test")
+ap.add_argument("--reuse-from", default=None,
+                help="run dir whose existing samples of the same tiles are copied, not regenerated "
+                     "(RFULL from R2000; same model, precision, steps, split, batch size required)")
 ap.add_argument("--out-root", default="runs/bon")
 ap.add_argument("--data-root", default="data/terradit")
 ap.add_argument("--subset-root", default="data/git10m_subset")
@@ -47,4 +53,5 @@ generate(set_name=args.set, run_dir=os.path.join(args.out_root, name), model=arg
          sample_ids=[0] if args.anchor_fp32 else range(NUM_SAMPLES),
          precision="fp32" if args.anchor_fp32 else "bf16", data_root=args.data_root,
          subset_root=args.subset_root, weights_root=args.weights_root, batch_size=args.batch_size,
-         num_steps=args.num_steps, limit_tiles=args.limit_tiles or args.anchor_tiles)
+         num_steps=args.num_steps, limit_tiles=args.limit_tiles or args.anchor_tiles,
+         reuse_from=args.reuse_from)

@@ -6,11 +6,18 @@ the protocol: each sample's initial noise comes from its own CPU generator seede
 (split, hf_idx, k), and sampling runs under bf16 autocast unless fp32 is requested.
 
 Resumable: a (tile, k) whose PNG exists is skipped. Samples are written one PNG each.
+
+reuse_from: another run directory of the same model, precision, steps and split (e.g. the R2000
+run when generating RFULL, whose first 2,000 tiles are the R2000 tiles). The seed of a sample
+depends only on (split, hf_idx, k), and both runs put these tiles in identical batches, so a
+sample that exists there is the sample this run would generate (up to GPU floating-point
+nondeterminism). It is copied instead of regenerated; the count is recorded in generation.json.
 """
 from __future__ import annotations
 
 import json
 import os
+import shutil
 import time
 
 from eotts.bon.sets import load_set, sample_path, sample_seed
@@ -22,7 +29,7 @@ FAMILY = {"omega_xl": "omega", "omega_base": "omega"}
 
 def generate(*, set_name, run_dir, model="omega_xl", num_samples=16, sample_ids=None,
              precision="bf16", data_root="data/terradit", subset_root="data/git10m_subset",
-             weights_root="data/weights", batch_size=32, num_steps=100, limit_tiles=None):
+             weights_root="data/weights", batch_size=32, num_steps=100, limit_tiles=None, reuse_from=None):
     ensure_terradit_importable()
     import torch
     from torch.utils.data._utils.collate import default_collate
@@ -38,6 +45,22 @@ def generate(*, set_name, run_dir, model="omega_xl", num_samples=16, sample_ids=
     ks = list(sample_ids) if sample_ids is not None else list(range(num_samples))
     s = load_set(set_name, data_root)
     tiles = s["tiles"][:limit_tiles] if limit_tiles else s["tiles"]
+    copied = 0
+    if reuse_from:
+        src = json.load(open(os.path.join(reuse_from, "generation.json"), encoding="utf-8"))
+        want = {"model": model, "precision": precision, "num_steps": num_steps, "split": s["split"],
+                "batch_size": batch_size}
+        for key, val in want.items():
+            if src.get(key) != val:
+                raise ValueError(f"cannot reuse {reuse_from}: {key}={src.get(key)!r}, this run {val!r}")
+        for t in tiles:
+            for k in ks:
+                dst, srcp = sample_path(run_dir, t["stem"], k), sample_path(reuse_from, t["stem"], k)
+                if not os.path.exists(dst) and os.path.exists(srcp):
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    shutil.copy2(srcp, dst)
+                    copied += 1
+        print(f"[bon] reused {copied} samples from {reuse_from}")
     todo = [(t, k) for t in tiles for k in ks if not os.path.exists(sample_path(run_dir, t["stem"], k))]
 
     os.makedirs(run_dir, exist_ok=True)
@@ -56,6 +79,8 @@ def generate(*, set_name, run_dir, model="omega_xl", num_samples=16, sample_ids=
         meta["provenance_at_start"] = old["provenance_at_start"]
     run_entry = {"started": time.strftime("%Y-%m-%dT%H:%M:%S"), "pending_at_start": len(todo),
                  "provenance": provenance()}
+    if reuse_from:
+        run_entry["reused_from"] = {"run_dir": reuse_from, "samples_copied": copied}
     meta["runs"].append(run_entry)
     json.dump(meta, open(meta_path, "w", encoding="utf-8"), indent=2)
     print(f"[bon] {set_name}: {len(tiles)} tiles x {len(ks)} samples, {len(todo)} to generate -> {run_dir}")

@@ -166,8 +166,8 @@ The budget does not change any decision above: N, tiles and metrics are fixed.
 
 ## Order of work
 
-1. Anchor 1 (baseline), then RFULL generation, then anchor 3.
-3. Scoring (`06_score_bon.py`), the GPU-KID check on Study 1 R2000, the analysis
+1. Anchor 1 (baseline), then the Best-of-N generation in the order of amendment 1.
+2. Scoring (`06_score_bon.py`), the GPU-KID check on Study 1 R2000, the analysis
    (`10_analyze_v2.py`).
 
 ## Limitations known in advance
@@ -178,6 +178,66 @@ The budget does not change any decision above: N, tiles and metrics are fixed.
 - Two text-alignment verifiers, no structural verifier.
 - No clean paper reference for Ω-B on Git-Rand (anchor 1).
 - Verifier training data may overlap with Git-10M; not checked.
+
+## Amendments
+
+### Amendment 1 (2026-11-16): S500 and R2000 with Ω-B, run first
+
+Written after the supervision meeting of 2026-11-16 and before any Study 2 Best-of-N sample
+was generated (only anchor 1, the Ω-B baseline, had run).
+
+1. **Sets.** Study 2 now has three sets, all with TerraDiT-Ω-B and the generation settings above:
+
+   | Set | Tiles | Run | Role |
+   | --- | --- | --- | --- |
+   | S500 | the 500 Git-Spatial tiles of Study 1 | `S500_omega_base` | repeats the pilot S500 with Ω-B |
+   | R2000 | the 2,000 Git-Rand tiles of Study 1 | `R2000_omega_base` | repeats the pilot R2000 with Ω-B |
+   | RFULL | all 14,932 Git-Rand tiles | `RFULL_omega_base` | main set, as above |
+
+   Order: S500, then R2000, then RFULL. The R2000 tiles are the first 2,000 tiles of RFULL and
+   have the same seeds, so RFULL copies the R2000 samples instead of regenerating them
+   (`05_generate_bon.py --reuse-from`; the generation code checks that model, precision, steps,
+   split and batch size are the same, and records the number of copied samples).
+
+2. **Endpoints.** The primary endpoints, the guard and the reading of the results (section
+   Endpoints) apply to each set separately. Each set is its own Holm family of six tests
+   (CLIP and FID × three rules). RFULL remains the main result. The R2000 tiles are part of
+   RFULL, so the two are not independent; we do not combine their p-values. On S500 and R2000,
+   FID is biased upward by the smaller n and is compared only within the set, never with the
+   full-split baseline or the paper (as in Study 1, exploratory analysis E-1). The R2000-prefix
+   analysis listed under Secondary is replaced by the R2000 set itself.
+
+3. **Verifiers.** The supervisor's main interest is V1 (RemoteCLIP); the results report V1
+   first. This changes no test: V1, V2 and V1+V2 are all scored and all in the family.
+
+4. **Anchors per set.**
+
+   | Anchor | S500 | R2000 | RFULL |
+   | --- | --- | --- | --- |
+   | 1. Paper-protocol baseline | none (no Ω-B Git-Spatial baseline) | the Git-Rand baseline (informational) | the Git-Rand baseline |
+   | 2. BoN-1 bf16 vs fp32 baseline, different noise | none | baseline images of the 2,000 tiles (`R2000_omega_base_baseline_fp32`) | all tiles (`RFULL_omega_base_baseline_fp32`) |
+   | 3. bf16 vs fp32, same noise | all 500 tiles (`S500_omega_base_fp32_k0`) | first 500 tiles (`R2000_omega_base_fp32_k0`) | the same 500 tiles |
+
+   The stop rule applies per set, against that set's N = 16 CIs.
+
+5. **A third verifier (V3), multimodal LLM.** Suggested by the supervisor: a vision-language
+   model asked whether the image shows the caption, scored by the probability of "Yes"
+   (VQAScore, Lin et al., ECCV 2024). Model, prompt and validity check will be fixed by a
+   further amendment **before** V3 scores any Study 2 sample. V3 and any rule using it are
+   secondary: they are not in the Holm family above, which stays as fixed here. V3 needs no new
+   generation; it scores the same samples.
+
+6. **Budget**, from the measured speeds (bf16 about 2.7 s per image in practice, fp32 3.8 s):
+
+   | Run | Images | GPU-hours, about |
+   | --- | --- | --- |
+   | S500 + its fp32 anchor | 8,000 + 500 | 6.5 |
+   | R2000 + its fp32 anchor (500 tiles) | 32,000 + 500 | 25 |
+   | RFULL, the remaining 12,932 tiles | 206,912 | 156 |
+   | Scoring (V1, V2, E1–E5) | about 260,000 | 10 |
+   | **Total** | | **≈ 198 (about 8 days)** |
+
+   S500 and R2000 results are available after about 1.5 days.
 
 ## Deviations
 
