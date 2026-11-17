@@ -211,7 +211,12 @@ python scripts/06_score_bon.py --run R2000_omega_base_fp32_k0
 python scripts/06_score_bon.py --run R2000_omega_base_baseline_fp32                     # anchor 2 on R2000
 python scripts/06_score_bon.py --run RFULL_omega_base
 python scripts/06_score_bon.py --run RFULL_omega_base_baseline_fp32                     # anchor 2 on RFULL
-# analysis
+# V3 (VLM verifier, amendment 2): choose on real tiles, then score the samples
+python scripts/12_vlm_validity.py                                                        # -> results/bon_v2/vlm_validity.md
+python scripts/06_score_bon.py --run S500_omega_base --components none --vlm <chosen V3>
+python scripts/06_score_bon.py --run R2000_omega_base --components none --vlm <chosen V3>
+python scripts/06_score_bon.py --run RFULL_omega_base --components none --vlm <chosen V3>
+# analysis (add --v3 <chosen V3> for the secondary V3 rules)
 python scripts/10_analyze_v2.py --check-gpu-kid                                          # GPU KID vs the pilot numbers
 python scripts/10_analyze_v2.py --set S500                                               # -> results/bon_v2/report_S500.md
 python scripts/10_analyze_v2.py --set R2000

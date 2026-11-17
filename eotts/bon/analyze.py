@@ -10,7 +10,7 @@ import os
 import numpy as np
 from scipy.stats import spearmanr
 
-from eotts.bon.select import RULES, V1, V2, oracle, select, take
+from eotts.bon.select import RULES, V1, V2, V3, V3_RULES, oracle, select, take
 from eotts.bon.sets import N_VALUES
 from eotts.stats.bootstrap import holm, paired_mean_diff, summarize, tile_weights
 from eotts.stats.fid import fid_resampled
@@ -45,7 +45,7 @@ def _real_term(real: np.ndarray, device=None) -> float:
 
 
 def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, progress=None,
-                b_kid: int = B_KID) -> dict:
+                b_kid: int = B_KID, v3=None) -> dict:
     """sc: load_scores() of a K=16 run. Returns all per-set results.
 
     with_fid (protocol v2): also FID on Inception features for every rule × N, with tile
@@ -53,8 +53,14 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
     device: None = KID kernels in float64 NumPy (as for the pilot study); "cuda" = float32 GPU
     with float64 reductions (needed at the full-split size; see eotts.stats.kid).
     b_kid: KID/FID resamples; the protocol value B_KID, smaller only in smoke tests.
+    v3: (T, K) scores of the VLM verifier fixed by amendment 2; adds the secondary rules
+    V3_RULES. They are reported like the others but are not in the primary Holm family.
     """
     vs = {V1: sc[f"verifiers.{V1}"], V2: sc[f"verifiers.{V2}"]}
+    rules = RULES
+    if v3 is not None:
+        vs[V3] = np.asarray(v3)
+        rules = RULES + V3_RULES
     T, K = vs[V1].shape
     W = tile_weights(T, B_MEAN, SEED_MEAN).astype(np.float64)
     Wk = tile_weights(T, b_kid, SEED_KID)
@@ -63,7 +69,7 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
     feats = {f: (sc[f"{f}.samples"], sc[f"{f}.gt"]) for f in FEATURES}
     real_term = {f: _real_term(feats[f][1], device) for f in FEATURES}
     sel = {"k0": np.zeros(T, int)}
-    for rule in RULES:
+    for rule in rules:
         for n in N_VALUES[1:]:
             sel[f"{rule}/{n}"] = select(rule, vs, n)
     key = lambda rule, n: "k0" if n == 1 else f"{rule}/{n}"
@@ -78,8 +84,8 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
            "bootstrap": {"per_image_resamples": B_MEAN, "kid_resamples": b_kid,
                          "seeds": [SEED_MEAN, SEED_KID]},
            "kid_backend": "numpy-float64" if device is None else f"torch-float32-{device}",
-           "rules": {}}
-    for rule in RULES:
+           "rules": {}, "secondary_rules": [r for r in rules if r not in RULES]}
+    for rule in rules:
         rr = {}
         for n in N_VALUES:
             idx = sel[key(rule, n)]
@@ -101,7 +107,7 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
         chosen = {k: take(smp, idx) for k, idx in sel.items()}
         fids = fid_resampled(chosen, gt, Wk_aug, progress=progress)
         out["n1_fid_full_sample"] = float(fids["k0"][0])
-        for rule in RULES:
+        for rule in rules:
             for n in N_VALUES:
                 f_, f0 = fids[key(rule, n)], fids["k0"]
                 out["rules"][rule][str(n)]["fid"] = {
@@ -129,7 +135,7 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
                 "own_caption_rank_pct_mean": float(sc[f"verifiers.{vname}__gt_rank_pct"].mean()),
                 "note": "fraction of the set's other captions scoring above the tile's own caption on the "
                         "real image; 0 = always ranked first, 0.5 = chance"}
-        for vname in vs}
+        for vname in (V1, V2)}
     return out
 
 

@@ -130,3 +130,14 @@ def test_resampled_parts_torch_float32_matches_float64():
                 resampled_mmd2_parts(f2, real, W, device="cpu"))
     diff64, diff32 = a64 - b64, a32 - b32
     assert np.abs(diff32 - diff64).max() < 1e-4 * np.abs(diff64).max()
+
+
+def test_v3_rules_are_secondary_and_select_correctly():
+    from eotts.bon.select import RULES, V1, V3, V3_RULES, select
+    rng = np.random.default_rng(8)
+    vs = {V1: rng.random((50, 16)), V3: rng.random((50, 16))}
+    assert not set(V3_RULES) & set(RULES)               # the primary Holm family is unchanged
+    assert (select("v3", vs, 8) == vs[V3][:, :8].argmax(1)).all()
+    idx = select("v1+v3", vs, 16)
+    assert idx.shape == (50,) and (idx < 16).all()
+    assert (select("v3", vs, 1) == 0).all()

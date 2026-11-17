@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from eotts.bon.select import RULES
 
-RULE_NAME = {"v1": "V1 RemoteCLIP-B/32", "v2": "V2 GeoRSCLIP-L/14", "v1+v2": "V1+V2 rank average"}
+RULE_NAME = {"v1": "V1 RemoteCLIP-B/32", "v2": "V2 GeoRSCLIP-L/14", "v1+v2": "V1+V2 rank average",
+             "v3": "V3 VLM P(yes) (secondary)", "v1+v3": "V1+V3 rank average (secondary)"}
 
 
 def _ci(d, scale=1.0, digits=4):
@@ -131,7 +132,7 @@ def write_report_v2(r, ends, anchors, prefix, path, set_label="RFULL"):
                "| Rule | N | Δ CLIP | Δ LPIPS (lower better) | Δ SSIM | Δ FID (lower better) | FID | "
                "Δ KID-Inception ×10³ | Δ KID-DINOv2 ×10³ |",
                "| --- | --- | --- | --- | --- | --- | --- | --- | --- |"]
-        for rule in RULES:
+        for rule in res["rules"]:
             for n, c in res["rules"][rule].items():
                 if n == "1":
                     continue

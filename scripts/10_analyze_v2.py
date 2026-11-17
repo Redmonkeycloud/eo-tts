@@ -29,6 +29,8 @@ from eotts.scoring.score_run import load_scores
 ap = argparse.ArgumentParser()
 ap.add_argument("--set", default="RFULL", choices=["S500", "R2000", "RFULL"])
 ap.add_argument("--runs-root", default="runs/bon")
+ap.add_argument("--v3", default=None, help="VLM verifier fixed by amendment 2 (e.g. v3_qwen3vl_4b); adds the "
+                                          "secondary rules v3 and v1+v3 if its scores exist")
 ap.add_argument("--out", default="results/bon_v2")
 ap.add_argument("--suffix", default="", help="e.g. _smoke")
 ap.add_argument("--data-root", default="data/terradit")
@@ -97,7 +99,16 @@ if sc is None:
     sys.exit(f"{args.runs_root}/{run}{args.suffix}/scores not found")
 T = sc[f"evaluators.clip_cos"].shape[0]
 log(f"{run}: {T} tiles; KID on {device or 'cpu float64'}; FID float64 CPU, {B_KID_RUN:,} resamples")
-r = analyze_set(sc, set_name, with_fid=True, device=device, progress=log, b_kid=B_KID_RUN)
+v3 = None
+if args.v3:
+    key = f"vlm_{args.v3}.samples"
+    if key not in sc:
+        sys.exit(f"--v3 {args.v3}: no scores in {run}; run 06_score_bon.py --components none --vlm {args.v3}")
+    v3 = sc[key]
+    log(f"V3 = {args.v3} (secondary rules v3, v1+v3)")
+r = analyze_set(sc, set_name, with_fid=True, device=device, progress=log, b_kid=B_KID_RUN, v3=v3)
+if args.v3:
+    r["v3_model"] = args.v3
 save(r, os.path.join(out_dir, f"{set_name}.json"))
 ends = endpoints_v2(r, set_name)
 save(ends, os.path.join(out_dir, f"endpoints_{set_name}.json"))

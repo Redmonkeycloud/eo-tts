@@ -239,6 +239,35 @@ was generated (only anchor 1, the Ω-B baseline, had run).
 
    S500 and R2000 results are available after about 1.5 days.
 
+### Amendment 2, part A (2026-11-17): how V3 is chosen and used
+
+Written before V3 has scored any image, real or generated. It fixes everything about V3 except
+the model, and fixes how the model is chosen.
+
+1. **Score.** The VLM sees the image and the question
+   `Does this figure show "{caption}"? Please answer yes or no.`; the score is the probability
+   of the token "Yes" as the first answer token, softmax over the full vocabulary (VQAScore,
+   Lin et al., ECCV 2024; their default question and answer). The whole caption is used.
+   Weights in bf16, the language-model head in float32 (`eotts/scoring/vlm.py`).
+2. **Candidates**, all fitting the 12 GB GPU in bf16, revisions pinned in `eotts/scoring/vlm.py`:
+   Qwen2.5-VL-3B-Instruct (supported by VQAScore's own package), Qwen3-VL-4B-Instruct,
+   InternVL3-2B. A remote-sensing VLM (EarthDial, 4B, InternVL-based) was considered. As far
+   as we found, it is distributed with the authors' own model code rather than the standard
+   Hugging Face classes the three candidates load with, so it was left out to keep V3 on
+   pinned, standard code.
+3. **Choice, on real tiles only.** `scripts/12_vlm_validity.py`: for each of the first 500
+   R2000 tiles, the real image is scored against its own caption and 20 captions of other R2000
+   tiles (drawn once, seed 2027), one pair at a time. Measure: the share of the 20 that score
+   above the own caption. **V3 is the candidate with the lowest mean share.** V1 and V2 are
+   measured on the same sets for comparison. No generated sample and no evaluator is used, so
+   the choice cannot be fitted to the endpoints. Part B of this amendment records the result
+   and the chosen model before V3 scores any generated sample.
+4. **Use.** V3 scores all 16 samples of every tile of S500, R2000 and RFULL (one tile per batch,
+   so no prompt padding). Two rules are added: `v3` (best of N by V3) and `v1+v3` (rank average
+   of V1 and V3, ties broken by V3; V1 because it is the supervisor's main interest). Both are
+   **secondary**: reported with all metrics and CIs at every N, but not in the primary Holm
+   family, which stays CLIP and FID × {V1, V2, V1+V2} per set (amendment 1).
+
 ## Deviations
 
 None yet.

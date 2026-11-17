@@ -10,7 +10,10 @@ Protocol v2 (Study 2):
     python scripts/06_score_bon.py --run RFULL_omega_base_fp32_k0         # same-noise anchor, 500 tiles
     python scripts/06_score_bon.py --run RFULL_omega_base_baseline_fp32   # paper-protocol baseline images
 
-Each component (verifiers, evaluators, inception, dino) is saved separately under
+V3 (VLM verifier; protocol v2, amendment 2), only after the choice of model is fixed:
+    python scripts/06_score_bon.py --run S500_omega_base --components none --vlm v3_qwen3vl_4b
+
+Each component (verifiers, evaluators, inception, dino, vlm_<name>) is saved separately under
 runs/bon/<run>/scores/ and skipped if present, so scoring resumes.
 """
 import argparse
@@ -32,6 +35,9 @@ ap.add_argument("--baseline-images", default=None,
 ap.add_argument("--data-root", default="data/terradit")
 ap.add_argument("--subset-root", default="data/git10m_subset")
 ap.add_argument("--batch-size", type=int, default=32)
+ap.add_argument("--components", default="verifiers,evaluators,inception,dino",
+                help="comma list, or 'none' (e.g. to add only a VLM verifier to a scored run)")
+ap.add_argument("--vlm", action="append", default=[], help="VLM verifier(s) to add, see eotts/scoring/vlm.py")
 ap.add_argument("--limit-tiles", type=int, default=None, help="baseline anchor only: first N tiles (smoke test)")
 args = ap.parse_args()
 
@@ -53,5 +59,7 @@ else:
 
 score_images(tiles=tiles, image_path=image_path, ks=ks, out_dir=run_dir,
              subset=Git10MSubset(os.path.join(args.subset_root, s["split"])), device=device,
-             batch_size=args.batch_size)
+             batch_size=args.batch_size,
+             components=() if args.components == "none" else tuple(args.components.split(",")),
+             vlms=tuple(args.vlm))
 print(f"[score] done -> {run_dir}/scores")

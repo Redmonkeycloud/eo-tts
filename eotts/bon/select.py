@@ -5,7 +5,9 @@ import numpy as np
 from scipy.stats import rankdata
 
 V1, V2 = "v1_remoteclip_b32", "v2_georsclip_l14"
-RULES = ("v1", "v2", "v1+v2")
+V3 = "v3"                      # the VLM verifier fixed by protocol v2 amendment 2, under this key
+RULES = ("v1", "v2", "v1+v2")  # primary rules: the Holm family of protocol v2
+V3_RULES = ("v3", "v1+v3")     # secondary rules (amendment 2), used only when V3 scores exist
 
 
 def best_of(scores: np.ndarray, n: int) -> np.ndarray:
@@ -32,6 +34,10 @@ def select(rule: str, verifier_scores: dict, n: int) -> np.ndarray:
         return best_of(verifier_scores[V2], n)
     if rule == "v1+v2":
         return rank_average(verifier_scores[V1], verifier_scores[V2], n)
+    if rule == "v3":
+        return best_of(verifier_scores[V3], n)
+    if rule == "v1+v3":                       # ties broken by V3
+        return rank_average(verifier_scores[V1], verifier_scores[V3], n)
     raise ValueError(rule)
 
 

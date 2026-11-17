@@ -60,7 +60,7 @@ def _resumable(sdir, tag, n, batch_size, compute, ckpt_every=200):
 
 
 def score_images(*, tiles, image_path, ks, out_dir, subset, device, batch_size=32,
-                 components=("verifiers", "evaluators", "inception", "dino")):
+                 components=("verifiers", "evaluators", "inception", "dino"), vlms=()):
     """tiles: protocol tiles; image_path(tile, k) -> path; subset: Git10MSubset for GT + captions."""
     import torch
     from eotts.scoring.verifiers import ClipVerifier, VERIFIERS
@@ -129,6 +129,18 @@ def score_images(*, tiles, image_path, ks, out_dir, subset, device, batch_size=3
              ssim=arr["ss"].reshape(T, K))
         os.remove(part) if os.path.exists(part) else None
         del ce, pw
+
+    for name in vlms:                        # V3 candidates: one file each, scores/vlm_<name>.npz
+        if not done(f"vlm_{name}"):
+            from eotts.scoring.vlm import VlmVerifier
+            v = VlmVerifier(name, device)
+            # batch = the K samples of one tile: one caption, so no padding (see eotts.scoring.vlm)
+            arr, part = _resumable(sdir, f"vlm_{name}", len(pairs), K,
+                                   lambda sl: {"s": v.score(imgs(sl), caps_of(sl)).numpy()})
+            save(f"vlm_{name}", samples=arr["s"].reshape(T, K))
+            os.remove(part) if os.path.exists(part) else None
+            del v
+            torch.cuda.empty_cache() if device == "cuda" else None
 
     for name, cls in (("inception", InceptionFeatures), ("dino", DinoFeatures)):
         if name in components and not done(name):
