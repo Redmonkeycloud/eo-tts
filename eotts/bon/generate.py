@@ -129,7 +129,12 @@ def generate(*, set_name, run_dir, model="omega_xl", num_samples=16, sample_ids=
         paths = [sample_path(run_dir, t["stem"], k) for t, k in chunk]
         for p in paths:
             os.makedirs(os.path.dirname(p), exist_ok=True)
-        save_images(imgs, paths)
+        # write to a temporary name, then rename: a power cut can then leave a stray
+        # *.partial.png, never a truncated kNN.png that resuming would take as done
+        tmp = [p[:-4] + ".partial.png" for p in paths]
+        save_images(imgs, tmp)
+        for a, b_ in zip(tmp, paths):
+            os.replace(a, b_)
         done += len(chunk)
         if (b // batch_size) % 10 == 0 or done == len(todo):
             el = time.time() - t0
