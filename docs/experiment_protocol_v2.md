@@ -292,6 +292,17 @@ Recorded as the stop rule requires, before the R2000 endpoints are interpreted.
   labelled so wherever it is used. CLIP and the KID-DINOv2 guard on R2000, all S500 results, and
   the RFULL generation are not affected by the trigger. The stop rule is applied to RFULL
   separately, as fixed.
+- **Post-hoc result (2026-11-18, `results/bon_v2/null_draws.md`).** Across the 16 draws, FID
+  on R2000 is 39.70 ± 0.34 (range 39.17–40.47) and two draws differ by 0.32 at the median and
+  0.92 at the 95th percentile. The fp32 baseline (39.35) is an ordinary draw. **Sample 0 is
+  not**: it has the highest FID of the 16 draws on R2000 (40.47) and on S500 (73.17; others
+  69.75–72.74), and the highest KID-Inception on both, about 3 SD above the mean of samples
+  1–15. With Ω-XL and the same seeds, sample 0 is ordinary (R2000 29.38, draws 29.32 ± 0.28).
+  Sample 0 is the N = 1 reference of every comparison, so every distribution-metric difference
+  vs N = 1 on S500 and R2000 is measured against an unusually poor reference. The cause is not
+  yet known; `scripts/14_sample0_check.py` (post-hoc) compares sample 0 with samples 1–15 on
+  every score and on simple image statistics. No result of S500 or R2000 on FID, KID-Inception
+  or KID-DINOv2 is interpreted until the cause is found.
 
 ## Deviations
 
