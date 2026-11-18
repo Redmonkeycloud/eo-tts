@@ -268,6 +268,31 @@ the model, and fixes how the model is chosen.
    **secondary**: reported with all metrics and CIs at every N, but not in the primary Holm
    family, which stays CLIP and FID × {V1, V2, V1+V2} per set (amendment 1).
 
+## Reports
+
+### Report 1 (2026-11-18): the stop rule triggered on R2000
+
+Recorded as the stop rule requires, before the R2000 endpoints are interpreted.
+
+- **What triggered.** Anchor 2 on R2000: FID of BoN sample 0 (bf16, per-sample seeds) is
+  40.47, FID of the fp32 paper-protocol baseline images of the same 2,000 tiles is 39.35;
+  Δ = +1.13 [+0.01, +1.99] (p = 0.048). The half-width of the narrowest N = 16 FID CI on R2000
+  is 1.06 (V2). 1.13 > 1.06.
+- **What did not trigger.** E1–E3 on anchors 2 and 3 of R2000, and every check on S500.
+  Anchor 3 (same noise, bf16 vs fp32) shows no precision effect: PSNR 47.1 dB on R2000 and
+  51.0 dB on S500, E1–E3 differences ≤ 0.0004. The GPU KID path matched the float64 pilot
+  results (worst deviation 2.5 × 10⁻⁴ of a CI width; threshold 10⁻²).
+- **What the two images of anchor 2 differ in.** Not precision (anchor 3), but the noise draw:
+  the baseline uses the upstream seed and batch order, BoN sample 0 our per-sample seeds. So
+  the 1.13 is a difference between two random draws of the same model at n = 2,000.
+- **Decision.** The R2000 FID endpoints are reported but not interpreted until a diagnostic
+  has measured how far FID moves between independent draws at this n. That diagnostic
+  (`scripts/13_null_draws.py`: FID and KID of sample k of every tile, k = 0 … 15, i.e. 16
+  independent draws without selection) was written after the trigger and is **post-hoc**; it is
+  labelled so wherever it is used. CLIP and the KID-DINOv2 guard on R2000, all S500 results, and
+  the RFULL generation are not affected by the trigger. The stop rule is applied to RFULL
+  separately, as fixed.
+
 ## Deviations
 
 None yet.
