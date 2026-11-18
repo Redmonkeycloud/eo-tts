@@ -1,0 +1,124 @@
+{
+ "set": "R2000",
+ "tiles": 500,
+ "distractors": 20,
+ "seed": 2027,
+ "question": "Does this figure show \"{}\"? Please answer yes or no.",
+ "measure": "share of distractor captions scoring above the own caption (0 = own first, 0.5 = chance); top1 = own caption scores highest",
+ "choice_rule": "V3 = VLM candidate with the lowest mean share (protocol v2, amendment 2)",
+ "verifiers": {
+  "v1_remoteclip_b32": {
+   "kind": "clip",
+   "share_above_own": {
+    "estimate": 0.0855,
+    "ci_low": 0.0743,
+    "ci_high": 0.09670250000000002,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   },
+   "top1": {
+    "estimate": 0.456,
+    "ci_low": 0.412,
+    "ci_high": 0.502,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   }
+  },
+  "v2_georsclip_l14": {
+   "kind": "clip",
+   "share_above_own": {
+    "estimate": 0.033,
+    "ci_low": 0.025800000000000003,
+    "ci_high": 0.040702499999999996,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   },
+   "top1": {
+    "estimate": 0.73,
+    "ci_low": 0.692,
+    "ci_high": 0.766,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   }
+  },
+  "v3_qwen25vl_3b": {
+   "kind": "vlm",
+   "repo": "Qwen/Qwen2.5-VL-3B-Instruct",
+   "revision": "66285546d2b821cf421d4f5eb2576359d3770cd3",
+   "share_above_own": {
+    "estimate": 0.04240000000000001,
+    "ci_low": 0.03469499999999999,
+    "ci_high": 0.05080250000000001,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   },
+   "top1": {
+    "estimate": 0.622,
+    "ci_low": 0.578,
+    "ci_high": 0.666,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   },
+   "p_yes_plus_no_mean": 0.9947705257336299,
+   "p_yes_own_mean": 0.8446376292407513,
+   "p_yes_distractor_mean": 0.3241116325316543,
+   "seconds_per_pair": 0.1940342527117048
+  },
+  "v3_internvl3_2b": {
+   "kind": "vlm",
+   "repo": "OpenGVLab/InternVL3-2B-hf",
+   "revision": "cb57a075cb75a2e6d1b668b128d48bb00ae321d2",
+   "share_above_own": {
+    "estimate": 0.0221,
+    "ci_low": 0.016700000000000003,
+    "ci_high": 0.028402499999999997,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   },
+   "top1": {
+    "estimate": 0.768,
+    "ci_low": 0.732,
+    "ci_high": 0.804,
+    "p_boot": 0.001,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   },
+   "p_yes_plus_no_mean": 0.9997561191661017,
+   "p_yes_own_mean": 0.9786999161719286,
+   "p_yes_distractor_mean": 0.30067863278968054,
+   "seconds_per_pair": 0.13458959434145973
+  }
+ },
+ "provenance": {
+  "eo_tts": {
+   "commit": "705344eacc3998117e9e50e255ba85e5edf64e68",
+   "dirty": false
+  },
+  "terradit": {
+   "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+   "dirty": false
+  },
+  "env": {
+   "python": "3.14.0",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "torch": "2.9.1+cu126",
+   "cuda": "12.6",
+   "cudnn": 91002,
+   "gpu": "NVIDIA GeForce RTX 3060",
+   "gpu_mem_gb": 12.0,
+   "diffusers": "0.42.1",
+   "transformers": "5.21.0",
+   "torchmetrics": "1.9.0",
+   "huggingface_hub": "1.33.0",
+   "pyarrow": "22.0.0"
+  }
+ },
+ "chosen_v3": "v3_internvl3_2b"
+}

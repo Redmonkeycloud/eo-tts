@@ -1,0 +1,101 @@
+{
+ "3_bf16_vs_fp32_same_noise": {
+  "a": "BoN sample 0 (bf16)",
+  "b": "sample 0 (fp32, same noise)",
+  "clip_cos": {
+   "mean_a": 0.27584725618362427,
+   "mean_b": 0.2762454152107239,
+   "diff": {
+    "estimate": -0.0003981661647558212,
+    "ci_low": -0.0006600539796054363,
+    "ci_high": -0.00013632239587605004,
+    "p_boot": 0.0044,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "lpips": {
+   "mean_a": 0.3479163944721222,
+   "mean_b": 0.3479153513908386,
+   "diff": {
+    "estimate": 1.0624527931213378e-06,
+    "ci_low": -7.28279709815979e-05,
+    "ci_high": 7.602697759866712e-05,
+    "p_boot": 0.9864,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "ssim": {
+   "mean_a": 0.33385980129241943,
+   "mean_b": 0.3337189257144928,
+   "diff": {
+    "estimate": 0.00014087471365928649,
+    "ci_low": 0.00010949030704796314,
+    "ci_high": 0.0001721191380172968,
+    "p_boot": 0.0001,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "kid_inception": {
+   "a": {
+    "kid": 0.015637522948788164,
+    "kid_std": 4.0692042757905765e-16,
+    "kid_subset_size": 500
+   },
+   "b": {
+    "kid": 0.01564896003542258,
+    "kid_std": 4.961891391930831e-16,
+    "kid_subset_size": 500
+   }
+  },
+  "kid_dino": {
+   "a": {
+    "kid": 1.3874418000021422,
+    "kid_std": 1.2210434516706244e-15,
+    "kid_subset_size": 500
+   },
+   "b": {
+    "kid": 1.3904484182089352,
+    "kid_std": 5.329070518200751e-16,
+    "kid_subset_size": 500
+   }
+  },
+  "pixels": {
+   "tiles": 500,
+   "psnr_db_mean": 50.95336789833411,
+   "psnr_db_min": 38.282000359659904,
+   "psnr_db_p05": 44.731765169562145
+  }
+ },
+ "stop_rule": {
+  "rule": "stop if |anchor difference| exceeds the half-width of the narrowest N=16 vs N=1 CI for that metric on S500 (E1-E3 on anchors 2-3, FID on anchor 2)",
+  "flags": [],
+  "stop": false
+ },
+ "provenance": {
+  "eo_tts": {
+   "commit": "a76da07f0c3fdf61b235c32db6b93e27d85d75bc",
+   "dirty": false
+  },
+  "terradit": {
+   "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+   "dirty": false
+  },
+  "env": {
+   "python": "3.14.0",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "torch": "2.9.1+cu126",
+   "cuda": "12.6",
+   "cudnn": 91002,
+   "gpu": "NVIDIA GeForce RTX 3060",
+   "gpu_mem_gb": 12.0,
+   "diffusers": "0.42.1",
+   "transformers": "5.21.0",
+   "torchmetrics": "1.9.0",
+   "huggingface_hub": "1.33.0",
+   "pyarrow": "22.0.0"
+  }
+ }
+}

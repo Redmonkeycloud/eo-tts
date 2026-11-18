@@ -1,0 +1,201 @@
+{
+ "1_paper_protocol_baseline": {
+  "label": "\u03a9-B paper-protocol baseline on all of Git-Rand (fp32, upstream seed) vs the paper's \u03a9-B ablation (Table 3; split not named, plausibility only)",
+  "ours": {
+   "fid": 21.50708770751953,
+   "clip_cos": 0.2827965431790744,
+   "lpips": 0.3393793513316301,
+   "ssim": 0.2636056998562484,
+   "kid": 0.012164930813014507
+  },
+  "paper_ablation": {
+   "fid": 21.97,
+   "sfid": 6.25,
+   "ssim": 0.2632,
+   "clip_cos": 0.2759
+  },
+  "source": "D:\\eo-tts\\results\\baseline\\omega_base_random_omega.json"
+ },
+ "2_bf16_vs_fp32_baseline": {
+  "a": "BoN sample 0 (bf16, per-sample seeds)",
+  "b": "fp32 paper-protocol baseline (different noise)",
+  "clip_cos": {
+   "mean_a": 0.2833045423030853,
+   "mean_b": 0.28372374176979065,
+   "diff": {
+    "estimate": -0.00041919710114598276,
+    "ci_low": -0.0016161575854755938,
+    "ci_high": 0.0007991618413478132,
+    "p_boot": 0.4934,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "lpips": {
+   "mean_a": 0.33783966302871704,
+   "mean_b": 0.3376900255680084,
+   "diff": {
+    "estimate": 0.00014961903542280196,
+    "ci_low": -0.0014881490718573333,
+    "ci_high": 0.0017639476595446458,
+    "p_boot": 0.8472,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "ssim": {
+   "mean_a": 0.2612696588039398,
+   "mean_b": 0.2612605094909668,
+   "diff": {
+    "estimate": 9.12125501781702e-06,
+    "ci_low": -0.0019035636517452075,
+    "ci_high": 0.0019041845731670034,
+    "p_boot": 0.9954,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "kid_inception": {
+   "a": {
+    "kid": 0.012639734776117599,
+    "kid_std": 0.000797779156198014,
+    "kid_subset_size": 1000
+   },
+   "b": {
+    "kid": 0.011696197021996575,
+    "kid_std": 0.0007152440536283418,
+    "kid_subset_size": 1000
+   }
+  },
+  "kid_dino": {
+   "a": {
+    "kid": 1.1825007422481801,
+    "kid_std": 0.04451946753548375,
+    "kid_subset_size": 1000
+   },
+   "b": {
+    "kid": 1.1852233395580705,
+    "kid_std": 0.03966119967322279,
+    "kid_subset_size": 1000
+   }
+  },
+  "fid": {
+   "a": 40.47286528534738,
+   "b": 39.34733109657412,
+   "diff": {
+    "estimate": 1.1255341887732584,
+    "ci_low": 0.010148598105141108,
+    "ci_high": 1.9852884540031253,
+    "p_boot": 0.048,
+    "n_resamples": 1000,
+    "n_dropped": 0
+   }
+  }
+ },
+ "3_bf16_vs_fp32_same_noise": {
+  "a": "BoN sample 0 (bf16)",
+  "b": "sample 0 (fp32, same noise)",
+  "clip_cos": {
+   "mean_a": 0.28454264998435974,
+   "mean_b": 0.2845250964164734,
+   "diff": {
+    "estimate": 1.7596647143363954e-05,
+    "ci_low": -0.0002741759732365608,
+    "ci_high": 0.00030304001681506624,
+    "p_boot": 0.9078,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "lpips": {
+   "mean_a": 0.3370734751224518,
+   "mean_b": 0.33709990978240967,
+   "diff": {
+    "estimate": -2.6430487632751465e-05,
+    "ci_low": -0.00010829441919922828,
+    "ci_high": 5.531749948859215e-05,
+    "p_boot": 0.5112,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "ssim": {
+   "mean_a": 0.26115038990974426,
+   "mean_b": 0.2610393166542053,
+   "diff": {
+    "estimate": 0.00011106101423501968,
+    "ci_low": 6.930396128445863e-05,
+    "ci_high": 0.00015340401977300642,
+    "p_boot": 0.0001,
+    "n_resamples": 10000,
+    "n_dropped": 0
+   }
+  },
+  "kid_inception": {
+   "a": {
+    "kid": 0.014219042874356429,
+    "kid_std": 2.9803660004281974e-16,
+    "kid_subset_size": 500
+   },
+   "b": {
+    "kid": 0.014221464479844586,
+    "kid_std": 2.272678432690613e-16,
+    "kid_subset_size": 500
+   }
+  },
+  "kid_dino": {
+   "a": {
+    "kid": 1.2568763522334272,
+    "kid_std": 1.0443180557033613e-15,
+    "kid_subset_size": 500
+   },
+   "b": {
+    "kid": 1.261205736218524,
+    "kid_std": 1.6042626665492004e-15,
+    "kid_subset_size": 500
+   }
+  },
+  "pixels": {
+   "tiles": 500,
+   "psnr_db_mean": 47.10881757216767,
+   "psnr_db_min": 32.152595626658936,
+   "psnr_db_p05": 37.78238982784109
+  }
+ },
+ "stop_rule": {
+  "rule": "stop if |anchor difference| exceeds the half-width of the narrowest N=16 vs N=1 CI for that metric on R2000 (E1-E3 on anchors 2-3, FID on anchor 2)",
+  "flags": [
+   {
+    "anchor": "2_bf16_vs_fp32_baseline",
+    "metric": "fid",
+    "abs_diff": 1.1255341887732584,
+    "bon_ci_half_width": 1.063039914189949
+   }
+  ],
+  "stop": true
+ },
+ "provenance": {
+  "eo_tts": {
+   "commit": "a76da07f0c3fdf61b235c32db6b93e27d85d75bc",
+   "dirty": false
+  },
+  "terradit": {
+   "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+   "dirty": false
+  },
+  "env": {
+   "python": "3.14.0",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "torch": "2.9.1+cu126",
+   "cuda": "12.6",
+   "cudnn": 91002,
+   "gpu": "NVIDIA GeForce RTX 3060",
+   "gpu_mem_gb": 12.0,
+   "diffusers": "0.42.1",
+   "transformers": "5.21.0",
+   "torchmetrics": "1.9.0",
+   "huggingface_hub": "1.33.0",
+   "pyarrow": "22.0.0"
+  }
+ }
+}

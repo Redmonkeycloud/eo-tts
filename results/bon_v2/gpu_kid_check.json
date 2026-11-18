@@ -1,0 +1,177 @@
+{
+ "check": "GPU float32 KID vs committed float64 pilot results (protocol v2, Statistics)",
+ "device": "cuda",
+ "threshold": 0.01,
+ "worst": 0.0002539468548676754,
+ "pass": true,
+ "cells": [
+  {
+   "rule": "v1",
+   "n": "2",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 0.0001102671367745442
+  },
+  {
+   "rule": "v1",
+   "n": "2",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 7.550275455026728e-06
+  },
+  {
+   "rule": "v1",
+   "n": "4",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 0.0002539468548676754
+  },
+  {
+   "rule": "v1",
+   "n": "4",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 9.391067961448339e-06
+  },
+  {
+   "rule": "v1",
+   "n": "8",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 0.0001012933023852345
+  },
+  {
+   "rule": "v1",
+   "n": "8",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 6.502923928574163e-06
+  },
+  {
+   "rule": "v1",
+   "n": "16",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 0.0001253163131717092
+  },
+  {
+   "rule": "v1",
+   "n": "16",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 1.809992007775326e-06
+  },
+  {
+   "rule": "v2",
+   "n": "2",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 3.518304471251631e-05
+  },
+  {
+   "rule": "v2",
+   "n": "2",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 7.898557850742758e-06
+  },
+  {
+   "rule": "v2",
+   "n": "4",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 9.234294416599668e-05
+  },
+  {
+   "rule": "v2",
+   "n": "4",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 1.188743287569984e-05
+  },
+  {
+   "rule": "v2",
+   "n": "8",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 0.00010117484365395642
+  },
+  {
+   "rule": "v2",
+   "n": "8",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 8.118516559033543e-06
+  },
+  {
+   "rule": "v2",
+   "n": "16",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 7.301324146027396e-05
+  },
+  {
+   "rule": "v2",
+   "n": "16",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 1.3786556515815263e-05
+  },
+  {
+   "rule": "v1+v2",
+   "n": "2",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 3.518304471251631e-05
+  },
+  {
+   "rule": "v1+v2",
+   "n": "2",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 7.898557850742758e-06
+  },
+  {
+   "rule": "v1+v2",
+   "n": "4",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 4.7995218948872444e-05
+  },
+  {
+   "rule": "v1+v2",
+   "n": "4",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 4.539241011841485e-06
+  },
+  {
+   "rule": "v1+v2",
+   "n": "8",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 0.00011043552353868976
+  },
+  {
+   "rule": "v1+v2",
+   "n": "8",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 1.157604357326878e-05
+  },
+  {
+   "rule": "v1+v2",
+   "n": "16",
+   "metric": "kid_inception",
+   "max_abs_dev_over_ci_width": 7.080946973727518e-05
+  },
+  {
+   "rule": "v1+v2",
+   "n": "16",
+   "metric": "kid_dino",
+   "max_abs_dev_over_ci_width": 2.4012167897792572e-05
+  }
+ ],
+ "provenance": {
+  "eo_tts": {
+   "commit": "401d62d16b7680447b01bd37fcbd1ed665b5f318",
+   "dirty": false
+  },
+  "terradit": {
+   "commit": "8d90f0ddb8994f87794cbd431f0ebb531cd0dd64",
+   "dirty": false
+  },
+  "env": {
+   "python": "3.14.0",
+   "platform": "Windows-11-10.0.26300-SP0",
+   "torch": "2.9.1+cu126",
+   "cuda": "12.6",
+   "cudnn": 91002,
+   "gpu": "NVIDIA GeForce RTX 3060",
+   "gpu_mem_gb": 12.0,
+   "diffusers": "0.42.1",
+   "transformers": "5.21.0",
+   "torchmetrics": "1.9.0",
+   "huggingface_hub": "1.33.0",
+   "pyarrow": "22.0.0"
+  }
+ }
+}
