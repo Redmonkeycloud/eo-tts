@@ -87,53 +87,77 @@ Each Best-of-N study is compared against the re-run of its own base model.
 
 ## Best-of-N results, Study 2: TerraDiT-Ω-B (interim, S500 and R2000)
 
-Full write-up with all CIs, checks and caveats: [docs/bon_v2_results.md](docs/bon_v2_results.md).
-All differences are at N = 16 (best of 16 samples per tile), with 95 % paired tile-bootstrap
-CIs in the write-up. Bold: the CI excludes 0. Lower FID, KID and LPIPS are better.
+Metric values for each verifier at N = 16 (the best of 16 samples per tile), next to the two
+N = 1 references: sample 0 (the registered reference) and the average single draw (amendment 3;
+sample 0 turned out to be an unusually poor draw on FID with Ω-B). FID on 2,000 or 500 images is
+biased upward, so compare FID only within a table, not with the full-split values above.
+Differences with 95 % CIs and significance: [docs/bon_v2_results.md](docs/bon_v2_results.md).
+V3 (VLM verifier) and V1+V3 are secondary rules.
 
-**Registered primary endpoints** (N = 16 vs sample 0; Holm over CLIP and FID × 3 verifiers per set):
+### R2000 (2,000 Git-Rand tiles)
 
-| Set | Verifier | Δ CLIP | Δ FID | Guard (KID-DINOv2) | Verdict |
-| --- | --- | --- | --- | --- | --- |
-| R2000 | V1 RemoteCLIP | **+0.0028** | −0.61 | pass | improvement |
-| R2000 | V2 GeoRSCLIP | **+0.0113** | **−1.83** | pass | improvement |
-| R2000 | V1+V2 | **+0.0088** | **−1.28** | pass | improvement |
-| S500 | V1 RemoteCLIP | **+0.0045** | −2.97 | pass | improvement |
-| S500 | V2 GeoRSCLIP | **+0.0151** | −1.91 | **fail** | not an improvement |
-| S500 | V1+V2 | **+0.0119** | −2.97 | pass | improvement |
-
-**Against the average single draw** (amendment 3; more reliable for FID and KID because sample 0
-turned out to be an unusually poor draw with Ω-B; post-hoc for these two sets):
-
-| Set | Verifier | Δ CLIP | Δ FID | Δ KID-Inception ×10³ | Δ KID-DINOv2 ×10³ | Δ SSIM (vs sample 0) |
+| Selection | CLIP ↑ | LPIPS ↓ | SSIM ↑ | FID ↓ | KID-Inception ×10³ ↓ | KID-DINOv2 ×10³ ↓ |
 | --- | --- | --- | --- | --- | --- | --- |
-| R2000 | V1 RemoteCLIP | **+0.0027** | +0.16 | +0.25 | **−50.7** | **−0.0130** |
-| R2000 | V2 GeoRSCLIP | **+0.0112** | **−1.06** | −0.62 | **−94.3** | **−0.0106** |
-| R2000 | V1+V2 | **+0.0088** | −0.51 | −0.55 | **−86.8** | **−0.0137** |
-| R2000 | V3 VLM (secondary) | **+0.0063** | **−2.77** | **−2.31** | **−163.9** | **−0.0047** |
-| R2000 | V1+V3 (secondary) | **+0.0053** | **−1.58** | **−1.36** | **−155.2** | **−0.0088** |
-| S500 | V1 RemoteCLIP | **+0.0045** | −0.76 | −0.57 | −51.3 | **−0.0230** |
-| S500 | V2 GeoRSCLIP | **+0.0150** | +0.30 | **+3.04** | +87.5 | **−0.0154** |
-| S500 | V1+V2 | **+0.0119** | −0.76 | +1.07 | −18.2 | **−0.0237** |
-| S500 | V3 VLM (secondary) | **+0.0073** | −1.19 | +0.57 | **−99.7** | **−0.0059** |
-| S500 | V1+V3 (secondary) | **+0.0072** | −1.14 | +0.25 | **−160.7** | **−0.0162** |
+| N = 1: sample 0 (registered reference) | 0.2833 | 0.3378 | 0.2613 | 40.47 | 12.67 | 1182.3 |
+| N = 1: average single draw (amendment 3) | 0.2834 | 0.3383 | 0.2603 | 39.70 | 11.84 | 1188.2 |
+| N = 16: V1 RemoteCLIP | 0.2861 | 0.3405 | 0.2483 | 39.86 | 12.10 | 1137.5 |
+| N = 16: V2 GeoRSCLIP | 0.2946 | 0.3389 | 0.2507 | 38.64 | 11.22 | 1093.9 |
+| N = 16: V1+V2 | 0.2921 | 0.3385 | 0.2476 | 39.19 | 11.29 | 1101.4 |
+| N = 16: V3 VLM (secondary) | 0.2897 | 0.3367 | 0.2566 | 36.94 | 9.53 | 1024.3 |
+| N = 16: V1+V3 (secondary) | 0.2887 | 0.3381 | 0.2524 | 38.12 | 10.48 | 1033.0 |
+| N = 16: oracle (upper bound, picks by the evaluator itself) | 0.3132 | 0.2992 | 0.3074 | – | – | – |
 
-**FID as N grows** (R2000; N = 1 is sample 0, the average single draw is 39.70):
+FID at every N (the 16 single draws: 39.17 to 40.47, mean 39.70):
 
 | Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
 | --- | --- | --- | --- | --- | --- |
 | V1 RemoteCLIP | 40.47 | 39.49 | 39.82 | 39.70 | 39.86 |
 | V2 GeoRSCLIP | 40.47 | 39.10 | 39.07 | 38.55 | 38.64 |
 | V1+V2 | 40.47 | 39.10 | 39.22 | 39.13 | 39.19 |
-| V3 VLM | 40.47 | 38.94 | 37.87 | 37.27 | **36.94** |
-| V1+V3 | 40.47 | 38.94 | 38.19 | 37.94 | 38.12 |
+| V3 VLM (secondary) | 40.47 | 38.94 | 37.87 | 37.27 | 36.94 |
+| V1+V3 (secondary) | 40.47 | 38.94 | 38.19 | 37.94 | 38.12 |
+
+### S500 (500 Git-Spatial tiles, held-out region)
+
+| Selection | CLIP ↑ | LPIPS ↓ | SSIM ↑ | FID ↓ | KID-Inception ×10³ ↓ | KID-DINOv2 ×10³ ↓ |
+| --- | --- | --- | --- | --- | --- | --- |
+| N = 1: sample 0 (registered reference) | 0.2758 | 0.3479 | 0.3339 | 73.17 | 15.64 | 1387.4 |
+| N = 1: average single draw (amendment 3) | 0.2759 | 0.3479 | 0.3315 | 70.96 | 13.00 | 1312.1 |
+| N = 16: V1 RemoteCLIP | 0.2804 | 0.3487 | 0.3109 | 70.20 | 12.43 | 1260.8 |
+| N = 16: V2 GeoRSCLIP | 0.2909 | 0.3477 | 0.3185 | 71.25 | 16.04 | 1399.6 |
+| N = 16: V1+V2 | 0.2878 | 0.3478 | 0.3101 | 70.20 | 14.07 | 1293.9 |
+| N = 16: V3 VLM (secondary) | 0.2832 | 0.3427 | 0.3280 | 69.77 | 13.57 | 1212.4 |
+| N = 16: V1+V3 (secondary) | 0.2831 | 0.3438 | 0.3176 | 69.81 | 13.25 | 1151.4 |
+| N = 16: oracle (upper bound, picks by the evaluator itself) | 0.3077 | 0.3019 | 0.3926 | – | – | – |
+
+FID at every N (the 16 single draws: 69.75 to 73.17, mean 70.96):
+
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
+| --- | --- | --- | --- | --- | --- |
+| V1 RemoteCLIP | 73.17 | 70.92 | 70.18 | 70.48 | 70.20 |
+| V2 GeoRSCLIP | 73.17 | 71.29 | 71.07 | 70.00 | 71.25 |
+| V1+V2 | 73.17 | 71.29 | 71.28 | 70.42 | 70.20 |
+| V3 VLM (secondary) | 73.17 | 72.81 | 69.98 | 70.74 | 69.77 |
+| V1+V3 (secondary) | 73.17 | 72.81 | 70.79 | 69.86 | 69.81 |
+
+### Registered primary endpoints (N = 16 vs sample 0)
+
+| Set | Verifier | CLIP gain | FID change | Guard (KID-DINOv2) | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| R2000 | V1 RemoteCLIP | significant | not significant | pass | improvement |
+| R2000 | V2 GeoRSCLIP | significant | significant decrease | pass | improvement |
+| R2000 | V1+V2 | significant | significant decrease | pass | improvement |
+| S500 | V1 RemoteCLIP | significant | not significant | pass | improvement |
+| S500 | V2 GeoRSCLIP | significant | not significant | **fail** | not an improvement |
+| S500 | V1+V2 | significant | not significant | pass | improvement |
 
 In short: every verifier raises the CLIP score on both sets, V2 the most. The VLM verifier V3
-improves realism far more than the CLIP-based verifiers (FID −2.8 and KID-DINOv2 −14 % vs the
-average draw on R2000) and costs the least fidelity to the real image. On the held-out region
-S500, V2 makes images less realistic by KID-Inception, as Ω-XL did in the pilot. V1 gives a
-small, consistent CLIP gain with realism unchanged. RFULL, the main set, will test these
-findings with every reference fixed in advance.
+gives the most realistic images: on R2000 the lowest FID (36.94 against 39.70 for the average
+draw) and the lowest KID, and it keeps SSIM and LPIPS closest to the unselected samples. On the
+held-out region S500, V2 makes images less realistic (KID-Inception 16.04 and KID-DINOv2 1399.6,
+both above the average draw), as Ω-XL did in the pilot. V1 gives a small, consistent CLIP gain.
+RFULL, the main set, will test these findings with every reference fixed in advance.
+Tables are generated from `results/bon_v2/*.json` by `scripts/15_tables_v2.py`.
 
 ## Best-of-N results (pilot, Study 1: TerraDiT-Ω-XL on subsets)
 

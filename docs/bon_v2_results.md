@@ -54,6 +54,37 @@ was found. Because a single draw is a noisy reference for set-level metrics, ame
 the **average single draw** as a second reference. For S500 and R2000 that reference is
 post-hoc; for RFULL it was fixed before the analysis.
 
+## Metric values at N = 16
+
+Generated from `results/bon_v2/<set>.json` by `scripts/15_tables_v2.py` (also written to
+`results/bon_v2/tables.md`). The differences with CIs follow in Results 1–3.
+
+**R2000 (2,000 Git-Rand tiles)**
+
+| Selection | CLIP ↑ | LPIPS ↓ | SSIM ↑ | FID ↓ | KID-Inception ×10³ ↓ | KID-DINOv2 ×10³ ↓ |
+| --- | --- | --- | --- | --- | --- | --- |
+| N = 1: sample 0 (registered reference) | 0.2833 | 0.3378 | 0.2613 | 40.47 | 12.67 | 1182.3 |
+| N = 1: average single draw (amendment 3) | 0.2834 | 0.3383 | 0.2603 | 39.70 | 11.84 | 1188.2 |
+| N = 16: V1 RemoteCLIP | 0.2861 | 0.3405 | 0.2483 | 39.86 | 12.10 | 1137.5 |
+| N = 16: V2 GeoRSCLIP | 0.2946 | 0.3389 | 0.2507 | 38.64 | 11.22 | 1093.9 |
+| N = 16: V1+V2 | 0.2921 | 0.3385 | 0.2476 | 39.19 | 11.29 | 1101.4 |
+| N = 16: V3 VLM (secondary) | 0.2897 | 0.3367 | 0.2566 | 36.94 | 9.53 | 1024.3 |
+| N = 16: V1+V3 (secondary) | 0.2887 | 0.3381 | 0.2524 | 38.12 | 10.48 | 1033.0 |
+| N = 16: oracle (upper bound, picks by the evaluator itself) | 0.3132 | 0.2992 | 0.3074 | – | – | – |
+
+**S500 (500 Git-Spatial tiles, held-out region)**
+
+| Selection | CLIP ↑ | LPIPS ↓ | SSIM ↑ | FID ↓ | KID-Inception ×10³ ↓ | KID-DINOv2 ×10³ ↓ |
+| --- | --- | --- | --- | --- | --- | --- |
+| N = 1: sample 0 (registered reference) | 0.2758 | 0.3479 | 0.3339 | 73.17 | 15.64 | 1387.4 |
+| N = 1: average single draw (amendment 3) | 0.2759 | 0.3479 | 0.3315 | 70.96 | 13.00 | 1312.1 |
+| N = 16: V1 RemoteCLIP | 0.2804 | 0.3487 | 0.3109 | 70.20 | 12.43 | 1260.8 |
+| N = 16: V2 GeoRSCLIP | 0.2909 | 0.3477 | 0.3185 | 71.25 | 16.04 | 1399.6 |
+| N = 16: V1+V2 | 0.2878 | 0.3478 | 0.3101 | 70.20 | 14.07 | 1293.9 |
+| N = 16: V3 VLM (secondary) | 0.2832 | 0.3427 | 0.3280 | 69.77 | 13.57 | 1212.4 |
+| N = 16: V1+V3 (secondary) | 0.2831 | 0.3438 | 0.3176 | 69.81 | 13.25 | 1151.4 |
+| N = 16: oracle (upper bound, picks by the evaluator itself) | 0.3077 | 0.3019 | 0.3926 | – | – | – |
+
 ## Result 1: registered primary endpoints (N = 16 vs sample 0)
 
 | Set | Verifier | Δ CLIP [95 % CI] | Δ FID [95 % CI] | Guard: Δ KID-DINOv2 ×10³ [95 % CI] (margin) | Verdict |
@@ -108,38 +139,69 @@ resemblance to the one real image. V3 loses the least SSIM on both sets and is t
 verifier that significantly improves LPIPS (on S500). Sample 0 is ordinary on LPIPS and SSIM,
 so this table needs no second reference.
 
-## Result 4: scaling with N
+## Result 4: metric values at every N
 
-FID of the selected images (lower is better). N = 1 is sample 0; the average single draw is
-39.70 on R2000 and 70.96 on S500.
+N = 1 is sample 0. The average single draw is 39.70 FID on R2000 and 70.96 on S500.
 
-| Set | Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
-| --- | --- | --- | --- | --- | --- | --- |
-| R2000 | V1 | 40.47 | 39.49 | 39.82 | 39.70 | 39.86 |
-| R2000 | V2 | 40.47 | 39.10 | 39.07 | 38.55 | 38.64 |
-| R2000 | V1+V2 | 40.47 | 39.10 | 39.22 | 39.13 | 39.19 |
-| R2000 | V3 | 40.47 | 38.94 | 37.87 | 37.27 | **36.94** |
-| R2000 | V1+V3 | 40.47 | 38.94 | 38.19 | 37.94 | 38.12 |
-| S500 | V1 | 73.17 | 70.92 | 70.18 | 70.48 | 70.20 |
-| S500 | V2 | 73.17 | 71.29 | 71.07 | 70.00 | 71.25 |
-| S500 | V1+V2 | 73.17 | 71.29 | 71.28 | 70.42 | 70.20 |
-| S500 | V3 | 73.17 | 72.81 | 69.98 | 70.74 | **69.77** |
-| S500 | V1+V3 | 73.17 | 72.81 | 70.79 | 69.86 | 69.81 |
+**FID ↓, R2000**
 
-Δ CLIP vs sample 0 (higher is better):
-
-| Set | Verifier | N = 2 | N = 4 | N = 8 | N = 16 |
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
 | --- | --- | --- | --- | --- | --- |
-| R2000 | V1 | +0.0009 | +0.0023 | +0.0023 | +0.0028 |
-| R2000 | V2 | +0.0038 | +0.0073 | +0.0096 | +0.0113 |
-| R2000 | V1+V2 | +0.0038 | +0.0065 | +0.0079 | +0.0088 |
-| R2000 | V3 | +0.0026 | +0.0047 | +0.0054 | +0.0064 |
-| R2000 | V1+V3 | +0.0026 | +0.0043 | +0.0050 | +0.0054 |
-| S500 | V1 | +0.0006 | +0.0031 | +0.0026 | +0.0045 |
-| S500 | V2 | +0.0048 | +0.0083 | +0.0131 | +0.0151 |
-| S500 | V1+V2 | +0.0048 | +0.0074 | +0.0109 | +0.0119 |
-| S500 | V3 | +0.0023 | +0.0034 | +0.0057 | +0.0073 |
-| S500 | V1+V3 | +0.0023 | +0.0048 | +0.0076 | +0.0072 |
+| V1 RemoteCLIP | 40.47 | 39.49 | 39.82 | 39.70 | 39.86 |
+| V2 GeoRSCLIP | 40.47 | 39.10 | 39.07 | 38.55 | 38.64 |
+| V1+V2 | 40.47 | 39.10 | 39.22 | 39.13 | 39.19 |
+| V3 VLM (secondary) | 40.47 | 38.94 | 37.87 | 37.27 | 36.94 |
+| V1+V3 (secondary) | 40.47 | 38.94 | 38.19 | 37.94 | 38.12 |
+
+**FID ↓, S500**
+
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
+| --- | --- | --- | --- | --- | --- |
+| V1 RemoteCLIP | 73.17 | 70.92 | 70.18 | 70.48 | 70.20 |
+| V2 GeoRSCLIP | 73.17 | 71.29 | 71.07 | 70.00 | 71.25 |
+| V1+V2 | 73.17 | 71.29 | 71.28 | 70.42 | 70.20 |
+| V3 VLM (secondary) | 73.17 | 72.81 | 69.98 | 70.74 | 69.77 |
+| V1+V3 (secondary) | 73.17 | 72.81 | 70.79 | 69.86 | 69.81 |
+
+**CLIP score ↑, R2000**
+
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
+| --- | --- | --- | --- | --- | --- |
+| V1 RemoteCLIP | 0.2833 | 0.2842 | 0.2856 | 0.2856 | 0.2861 |
+| V2 GeoRSCLIP | 0.2833 | 0.2872 | 0.2906 | 0.2929 | 0.2946 |
+| V1+V2 | 0.2833 | 0.2872 | 0.2898 | 0.2912 | 0.2921 |
+| V3 VLM (secondary) | 0.2833 | 0.2859 | 0.2880 | 0.2887 | 0.2897 |
+| V1+V3 (secondary) | 0.2833 | 0.2859 | 0.2876 | 0.2883 | 0.2887 |
+
+**CLIP score ↑, S500**
+
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
+| --- | --- | --- | --- | --- | --- |
+| V1 RemoteCLIP | 0.2758 | 0.2764 | 0.2790 | 0.2784 | 0.2804 |
+| V2 GeoRSCLIP | 0.2758 | 0.2806 | 0.2841 | 0.2890 | 0.2909 |
+| V1+V2 | 0.2758 | 0.2806 | 0.2832 | 0.2868 | 0.2878 |
+| V3 VLM (secondary) | 0.2758 | 0.2782 | 0.2792 | 0.2815 | 0.2832 |
+| V1+V3 (secondary) | 0.2758 | 0.2782 | 0.2806 | 0.2834 | 0.2831 |
+
+**KID-DINOv2 ×10³ ↓, R2000**
+
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
+| --- | --- | --- | --- | --- | --- |
+| V1 RemoteCLIP | 1182.3 | 1161.8 | 1134.7 | 1109.2 | 1137.5 |
+| V2 GeoRSCLIP | 1182.3 | 1146.4 | 1135.3 | 1101.7 | 1093.9 |
+| V1+V2 | 1182.3 | 1146.4 | 1127.2 | 1087.4 | 1101.4 |
+| V3 VLM (secondary) | 1182.3 | 1119.3 | 1068.8 | 1054.9 | 1024.3 |
+| V1+V3 (secondary) | 1182.3 | 1119.3 | 1072.8 | 1059.3 | 1033.0 |
+
+**KID-DINOv2 ×10³ ↓, S500**
+
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
+| --- | --- | --- | --- | --- | --- |
+| V1 RemoteCLIP | 1387.4 | 1365.7 | 1350.4 | 1281.5 | 1260.8 |
+| V2 GeoRSCLIP | 1387.4 | 1354.8 | 1291.4 | 1367.6 | 1399.6 |
+| V1+V2 | 1387.4 | 1354.8 | 1287.4 | 1308.4 | 1293.9 |
+| V3 VLM (secondary) | 1387.4 | 1309.0 | 1205.7 | 1158.8 | 1212.4 |
+| V1+V3 (secondary) | 1387.4 | 1309.0 | 1219.3 | 1197.7 | 1151.4 |
 
 With two candidates, every rank average reduces to its tie-breaking verifier, so V1+V2 equals
 V2 and V1+V3 equals V3 at N = 2.
