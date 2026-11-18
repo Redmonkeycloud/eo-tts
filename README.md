@@ -56,7 +56,9 @@ If you use this repository, please cite their work:
 | Full Git-Spatial baseline | not run; Spatial is used as a held-out test set for search ([why](docs/experiment_protocol.md#anchors)) |
 | Study 2 protocol: TerraDiT-Ω-B, all 14,932 Git-Rand tiles, N up to 16, FID as a primary endpoint | done, fixed before any run ([protocol v2](docs/experiment_protocol_v2.md)) |
 | Study 2, anchor 1: paper-protocol baseline, TerraDiT-Ω-B, Git-Rand | done: FID 21.51 vs 21.97 in the paper's Ω-B ablation ([details](docs/baseline_reproduction.md#terradit-ω-b-on-git-rand-study-2-anchor-1)) |
-| Study 2 runs with Ω-B: S500 and R2000 first (about 1.5 days), then all of Git-Rand ([amendment 1](docs/experiment_protocol_v2.md#amendment-1-2026-11-16-s500-and-r2000-with-ω-b-run-first)) | next (about 8 days of GPU time in total) |
+| Study 2, Ω-B: Best-of-N on S500 and R2000, 3 primary verifiers + VLM verifier V3 | done ([interim results](docs/bon_v2_results.md)) |
+| V3: VLM verifier (InternVL3-2B, P("yes")), chosen on real tiles | done: best caption recognition of all verifiers ([amendment 2](docs/experiment_protocol_v2.md)) |
+| Study 2, Ω-B: Best-of-N on all 14,932 Git-Rand tiles (RFULL, 238,912 samples) | running, about 7 days of GPU time |
 | Rollover Budget Forcing with custom allocation rules | later |
 
 ## Baseline results
@@ -82,6 +84,56 @@ reasons for the gaps are in [docs/baseline_reproduction.md](docs/baseline_reprod
 Raw output: [results/baseline/omega_xl_random_omega.json](results/baseline/omega_xl_random_omega.json),
 [results/baseline/omega_base_random_omega.json](results/baseline/omega_base_random_omega.json).
 Each Best-of-N study is compared against the re-run of its own base model.
+
+## Best-of-N results, Study 2: TerraDiT-Ω-B (interim, S500 and R2000)
+
+Full write-up with all CIs, checks and caveats: [docs/bon_v2_results.md](docs/bon_v2_results.md).
+All differences are at N = 16 (best of 16 samples per tile), with 95 % paired tile-bootstrap
+CIs in the write-up. Bold: the CI excludes 0. Lower FID, KID and LPIPS are better.
+
+**Registered primary endpoints** (N = 16 vs sample 0; Holm over CLIP and FID × 3 verifiers per set):
+
+| Set | Verifier | Δ CLIP | Δ FID | Guard (KID-DINOv2) | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| R2000 | V1 RemoteCLIP | **+0.0028** | −0.61 | pass | improvement |
+| R2000 | V2 GeoRSCLIP | **+0.0113** | **−1.83** | pass | improvement |
+| R2000 | V1+V2 | **+0.0088** | **−1.28** | pass | improvement |
+| S500 | V1 RemoteCLIP | **+0.0045** | −2.97 | pass | improvement |
+| S500 | V2 GeoRSCLIP | **+0.0151** | −1.91 | **fail** | not an improvement |
+| S500 | V1+V2 | **+0.0119** | −2.97 | pass | improvement |
+
+**Against the average single draw** (amendment 3; more reliable for FID and KID because sample 0
+turned out to be an unusually poor draw with Ω-B; post-hoc for these two sets):
+
+| Set | Verifier | Δ CLIP | Δ FID | Δ KID-Inception ×10³ | Δ KID-DINOv2 ×10³ | Δ SSIM (vs sample 0) |
+| --- | --- | --- | --- | --- | --- | --- |
+| R2000 | V1 RemoteCLIP | **+0.0027** | +0.16 | +0.25 | **−50.7** | **−0.0130** |
+| R2000 | V2 GeoRSCLIP | **+0.0112** | **−1.06** | −0.62 | **−94.3** | **−0.0106** |
+| R2000 | V1+V2 | **+0.0088** | −0.51 | −0.55 | **−86.8** | **−0.0137** |
+| R2000 | V3 VLM (secondary) | **+0.0063** | **−2.77** | **−2.31** | **−163.9** | **−0.0047** |
+| R2000 | V1+V3 (secondary) | **+0.0053** | **−1.58** | **−1.36** | **−155.2** | **−0.0088** |
+| S500 | V1 RemoteCLIP | **+0.0045** | −0.76 | −0.57 | −51.3 | **−0.0230** |
+| S500 | V2 GeoRSCLIP | **+0.0150** | +0.30 | **+3.04** | +87.5 | **−0.0154** |
+| S500 | V1+V2 | **+0.0119** | −0.76 | +1.07 | −18.2 | **−0.0237** |
+| S500 | V3 VLM (secondary) | **+0.0073** | −1.19 | +0.57 | **−99.7** | **−0.0059** |
+| S500 | V1+V3 (secondary) | **+0.0072** | −1.14 | +0.25 | **−160.7** | **−0.0162** |
+
+**FID as N grows** (R2000; N = 1 is sample 0, the average single draw is 39.70):
+
+| Verifier | N = 1 | N = 2 | N = 4 | N = 8 | N = 16 |
+| --- | --- | --- | --- | --- | --- |
+| V1 RemoteCLIP | 40.47 | 39.49 | 39.82 | 39.70 | 39.86 |
+| V2 GeoRSCLIP | 40.47 | 39.10 | 39.07 | 38.55 | 38.64 |
+| V1+V2 | 40.47 | 39.10 | 39.22 | 39.13 | 39.19 |
+| V3 VLM | 40.47 | 38.94 | 37.87 | 37.27 | **36.94** |
+| V1+V3 | 40.47 | 38.94 | 38.19 | 37.94 | 38.12 |
+
+In short: every verifier raises the CLIP score on both sets, V2 the most. The VLM verifier V3
+improves realism far more than the CLIP-based verifiers (FID −2.8 and KID-DINOv2 −14 % vs the
+average draw on R2000) and costs the least fidelity to the real image. On the held-out region
+S500, V2 makes images less realistic by KID-Inception, as Ω-XL did in the pilot. V1 gives a
+small, consistent CLIP gain with realism unchanged. RFULL, the main set, will test these
+findings with every reference fixed in advance.
 
 ## Best-of-N results (pilot, Study 1: TerraDiT-Ω-XL on subsets)
 
@@ -234,6 +286,7 @@ docs/baseline_reproduction.md   baseline results, metric definitions, gap analys
 docs/experiment_protocol.md     Best-of-N questions, tiles, verifiers, endpoints, statistics (pre-registered)
 docs/bon_results.md             Best-of-N results, anchors, interpretation, caveats (pilot, Study 1)
 docs/experiment_protocol_v2.md  Study 2: Ω-B on all of Git-Rand, FID + CLIP primary (pre-registered)
+docs/bon_v2_results.md          Study 2 results (interim: S500 and R2000), checks, caveats
 configs/subsets/                fixed evaluation tile lists and their representativeness statistics
 eotts/data/subsets.py           how the subsets are drawn and checked
 eotts/bon/                      Best-of-N: sets and seeds, generation, selection rules, analysis, report
