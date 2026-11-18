@@ -45,7 +45,7 @@ def _real_term(real: np.ndarray, device=None) -> float:
 
 
 def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, progress=None,
-                b_kid: int = B_KID, v3=None) -> dict:
+                b_kid: int = B_KID, v3=None, mean_draw: bool = False) -> dict:
     """sc: load_scores() of a K=16 run. Returns all per-set results.
 
     with_fid (protocol v2): also FID on Inception features for every rule × N, with tile
@@ -55,6 +55,11 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
     b_kid: KID/FID resamples; the protocol value B_KID, smaller only in smoke tests.
     v3: (T, K) scores of the VLM verifier fixed by amendment 2; adds the secondary rules
     V3_RULES. They are reported like the others but are not in the primary Holm family.
+    mean_draw (protocol v2, amendment 3): also every difference against the average single
+    draw instead of sample 0 alone: per-image metrics against the tile's mean over its K
+    samples, KID and FID against the mean of KID/FID over the K draws "sample k of every tile",
+    on the same resamples. Added as a secondary reference after sample 0 proved unusually poor
+    on FID with Ω-B (report 1).
     """
     vs = {V1: sc[f"verifiers.{V1}"], V2: sc[f"verifiers.{V2}"]}
     rules = RULES
@@ -69,6 +74,9 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
     feats = {f: (sc[f"{f}.samples"], sc[f"{f}.gt"]) for f in FEATURES}
     real_term = {f: _real_term(feats[f][1], device) for f in FEATURES}
     sel = {"k0": np.zeros(T, int)}
+    draws = [f"draw/{k}" for k in range(1, K)] if mean_draw else []
+    for k in range(1, K if mean_draw else 1):
+        sel[f"draw/{k}"] = np.full(T, k)
     for rule in rules:
         for n in N_VALUES[1:]:
             sel[f"{rule}/{n}"] = select(rule, vs, n)
@@ -94,10 +102,15 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
                 chosen = take(ev[m], idx)
                 cell[m] = {"mean": float(chosen.mean()),
                            "diff_vs_n1": paired_mean_diff(chosen, ev[m][:, 0], W)}
+                if mean_draw:
+                    cell[m]["diff_vs_mean_draw"] = paired_mean_diff(chosen, ev[m].mean(1), W)
             for f, name in FEATURES.items():
                 p, p0 = parts[f][key(rule, n)], parts[f]["k0"]
                 cell[name] = {"mmd2_full_sample": float(p[0]) + real_term[f],
                               "diff_vs_n1": summarize(float(p[0] - p0[0]), p[1:] - p0[1:])}
+                if mean_draw:
+                    pm = np.mean([parts[f][d] for d in ["k0"] + draws], axis=0)
+                    cell[name]["diff_vs_mean_draw"] = summarize(float(p[0] - pm[0]), p[1:] - pm[1:])
             rr[str(n)] = cell
         out["rules"][rule] = rr
     full_k0 = {f: float(parts[f]["k0"][0]) for f in FEATURES}
@@ -113,11 +126,21 @@ def analyze_set(sc: dict, set_name: str, with_fid: bool = False, device=None, pr
                 out["rules"][rule][str(n)]["fid"] = {
                     "full_sample": float(f_[0]),
                     "diff_vs_n1": summarize(float(f_[0] - f0[0]), f_[1:] - f0[1:])}
+                if mean_draw:
+                    fm = np.mean([fids[d] for d in ["k0"] + draws], axis=0)
+                    out["rules"][rule][str(n)]["fid"]["diff_vs_mean_draw"] = summarize(
+                        float(f_[0] - fm[0]), f_[1:] - fm[1:])
+        if mean_draw:
+            out["per_draw_fid_full_sample"] = [float(fids[d][0]) for d in ["k0"] + draws]
+            out["mean_draw_fid_full_sample"] = float(np.mean(out["per_draw_fid_full_sample"]))
         out["bootstrap"]["fid_resamples"] = b_kid
 
     out["oracle"] = {m: {str(n): float(take(ev[m], oracle(ev[m], n, hb)).mean()) for n in N_VALUES}
                      for m, hb in PER_IMAGE.items()}
     out["n1_kid_full_sample"] = {FEATURES[f]: full_k0[f] + real_term[f] for f in FEATURES}
+    if mean_draw:
+        out["mean_draw_kid_full_sample"] = {
+            FEATURES[f]: float(np.mean([parts[f][d][0] for d in ["k0"] + draws])) + real_term[f] for f in FEATURES}
     # torchmetrics-style subset KID at N = 1, for comparison with the baseline's reported KID.
     # The full-sample unbiased MMD² used above has the same expectation and is used for all
     # comparisons because it is computed on every tile.

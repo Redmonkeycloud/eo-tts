@@ -106,7 +106,8 @@ if args.v3:
         sys.exit(f"--v3 {args.v3}: no scores in {run}; run 06_score_bon.py --components none --vlm {args.v3}")
     v3 = sc[key]
     log(f"V3 = {args.v3} (secondary rules v3, v1+v3)")
-r = analyze_set(sc, set_name, with_fid=True, device=device, progress=log, b_kid=B_KID_RUN, v3=v3)
+r = analyze_set(sc, set_name, with_fid=True, device=device, progress=log, b_kid=B_KID_RUN, v3=v3,
+                mean_draw=True)       # amendment 3: also against the average single draw
 if args.v3:
     r["v3_model"] = args.v3
 save(r, os.path.join(out_dir, f"{set_name}.json"))

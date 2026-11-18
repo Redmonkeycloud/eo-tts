@@ -142,6 +142,21 @@ def write_report_v2(r, ends, anchors, prefix, path, set_label="RFULL"):
                            f"{_ci(c['kid_inception']['diff_vs_n1'], 1e3, 3)} | {_ci(c['kid_dino']['diff_vs_n1'], 1e3, 3)} |")
         return out + [""]
 
+    if "mean_draw_fid_full_sample" in r:
+        L += ["## Secondary reference: the average single draw (amendment 3)", "",
+              "Same N = 16 selections, compared with the average of the 16 single draws (sample k of every tile, "
+              "k = 0 … 15) instead of sample 0 alone. FID of the draws: "
+              + ", ".join(f"{x:.2f}" for x in r["per_draw_fid_full_sample"])
+              + f" (mean {r['mean_draw_fid_full_sample']:.2f}; sample 0 = {r['n1_fid_full_sample']:.2f}).", "",
+              "| Rule | Δ CLIP | Δ FID | Δ KID-Inception ×10³ | Δ KID-DINOv2 ×10³ |", "| --- | --- | --- | --- | --- |"]
+        for rule in r["rules"]:
+            c = r["rules"][rule]["16"]
+            L.append(f"| {RULE_NAME[rule]} | {_ci(c['clip_cos']['diff_vs_mean_draw'])} | "
+                     f"{_ci(c['fid']['diff_vs_mean_draw'], 1.0, 3)} | {_ci(c['kid_inception']['diff_vs_mean_draw'], 1e3, 3)} | "
+                     f"{_ci(c['kid_dino']['diff_vs_mean_draw'], 1e3, 3)} |")
+        c1 = r["rules"]["v1"]["1"]
+        L += ["", f"Sample 0 vs the average draw: Δ FID {_ci(c1['fid']['diff_vs_mean_draw'], 1.0, 3)}, "
+                  f"Δ KID-DINOv2 ×10³ {_ci(c1['kid_dino']['diff_vs_mean_draw'], 1e3, 3)}.", ""]
     L += cells(r, f"All cells, {set_label} ({r['tiles']} tiles × {r['samples_per_tile']} samples)")
     L += ["Oracle (best of N by the evaluator itself; an upper bound, not a method):", "",
           "| Metric | " + " | ".join(f"N={n}" for n in r["oracle"]["clip_cos"]) + " |",

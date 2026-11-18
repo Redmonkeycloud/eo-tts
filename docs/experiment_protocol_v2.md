@@ -268,6 +268,27 @@ the model, and fixes how the model is chosen.
    **secondary**: reported with all metrics and CIs at every N, but not in the primary Holm
    family, which stays CLIP and FID × {V1, V2, V1+V2} per set (amendment 1).
 
+### Amendment 3 (2026-11-18): a second N = 1 reference, the average single draw
+
+Written after report 1 below, before any RFULL sample beyond the R2000 tiles exists.
+
+1. **Why.** The registered N = 1 reference is sample 0, one draw. Report 1 found that with Ω-B,
+   sample 0 has the worst FID of the 16 draws on R2000 and S500 (about 3 SD above samples
+   1–15), while it is ordinary on every per-image metric, every verifier score and every simple
+   image statistic (`results/bon_v2/sample0_check.md`), and ordinary with Ω-XL on the same
+   seeds. No defect in generation or scoring was found: sample 0 reproduces under a different
+   batch layout and in fp32 (anchor 3), and its scores are in line with the other 15. A single
+   draw is a noisy reference for set-level metrics; the average over the 16 draws estimates the
+   same quantity, "N = 1", with far less noise.
+2. **What changes.** Nothing in the registered analysis: primary endpoints, guard, Holm family
+   and the reading of results keep sample 0 as the reference. **Added, for every set and every
+   cell:** the same differences against the average single draw — per-image metrics against
+   each tile's mean over its 16 samples, KID and FID against the mean of KID and FID over the
+   16 draws "sample k of every tile", on the same bootstrap resamples. These are secondary and
+   are reported next to the registered ones, never instead of them.
+3. **For S500 and R2000** this reference is applied after their results were seen, and is
+   labelled post-hoc there. For RFULL it is fixed now.
+
 ## Reports
 
 ### Report 1 (2026-11-18): the stop rule triggered on R2000
