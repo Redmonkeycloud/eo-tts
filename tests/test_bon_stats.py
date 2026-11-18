@@ -141,3 +141,19 @@ def test_v3_rules_are_secondary_and_select_correctly():
     idx = select("v1+v3", vs, 16)
     assert idx.shape == (50,) and (idx < 16).all()
     assert (select("v3", vs, 1) == 0).all()
+
+
+def test_fid_gram_path_equals_fid_when_tiles_lt_dims():
+    from eotts.stats.fid import fid, fid_resampled
+    rng = np.random.default_rng(9)
+    T, d = 60, 128                                   # fewer tiles than dimensions -> n x n path
+    real = rng.gamma(2.0, 1.0, (T, d))
+    f1 = real * 0.9 + rng.normal(0, 0.5, (T, d))
+    W = np.vstack([np.ones((1, T), np.int64), tile_weights(T, 5, 2)])
+    r = fid_resampled({"a": f1}, real, W)
+    for b, w in enumerate(W):
+        idx = np.repeat(np.arange(T), w)
+        # with fewer tiles than dimensions the covariances are singular; the torchmetrics form then
+        # adds square roots of ~1e-12 rounding noise in the null space (about 1e-6 relative), the
+        # n x n form sums only the nonzero eigenvalues
+        assert r["a"][b] == pytest.approx(fid(f1[idx], real[idx]), rel=2e-6)
