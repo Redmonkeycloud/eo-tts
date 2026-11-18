@@ -94,6 +94,10 @@ biased upward, so compare FID only within a table, not with the full-split value
 Differences with 95 % CIs and significance: [docs/bon_v2_results.md](docs/bon_v2_results.md).
 V3 (VLM verifier) and V1+V3 are secondary rules.
 
+![Metric values vs N for every verifier, S500 and R2000](docs/assets/bon_v2_scaling.png)
+
+![Caption agreement vs realism at N = 16](docs/assets/bon_v2_tradeoff.png)
+
 ### R2000 (2,000 Git-Rand tiles)
 
 | Selection | CLIP ↑ | LPIPS ↓ | SSIM ↑ | FID ↓ | KID-Inception ×10³ ↓ | KID-DINOv2 ×10³ ↓ |
@@ -140,6 +144,13 @@ FID at every N (the 16 single draws: 69.75 to 73.17, mean 70.96):
 | V3 VLM (secondary) | 73.17 | 72.81 | 69.98 | 70.74 | 69.77 |
 | V1+V3 (secondary) | 73.17 | 72.81 | 70.79 | 69.86 | 69.81 |
 
+What each verifier picks, on tiles drawn at random (real image, sample 0, and the best of 16
+by V1, V2 and V3):
+
+![Examples, R2000](docs/assets/bon_v2_examples_R2000.png)
+
+![Examples, S500](docs/assets/bon_v2_examples_S500.png)
+
 ### Registered primary endpoints (N = 16 vs sample 0)
 
 | Set | Verifier | CLIP gain | FID change | Guard (KID-DINOv2) | Verdict |
@@ -157,7 +168,8 @@ draw) and the lowest KID, and it keeps SSIM and LPIPS closest to the unselected 
 held-out region S500, V2 makes images less realistic (KID-Inception 16.04 and KID-DINOv2 1399.6,
 both above the average draw), as Ω-XL did in the pilot. V1 gives a small, consistent CLIP gain.
 RFULL, the main set, will test these findings with every reference fixed in advance.
-Tables are generated from `results/bon_v2/*.json` by `scripts/15_tables_v2.py`.
+Tables are generated from `results/bon_v2/*.json` by `scripts/15_tables_v2.py`, figures by
+`scripts/16_plot_v2.py` and `scripts/17_examples_v2.py`.
 
 ## Best-of-N results (pilot, Study 1: TerraDiT-Ω-XL on subsets)
 

@@ -54,6 +54,25 @@ was found. Because a single draw is a noisy reference for set-level metrics, ame
 the **average single draw** as a second reference. For S500 and R2000 that reference is
 post-hoc; for RFULL it was fixed before the analysis.
 
+## Figures
+
+![Metric values vs N for every verifier, S500 and R2000](assets/bon_v2_scaling.png)
+
+FID, CLIP score and KID-DINOv2 of the selected images as N grows (bands: 95 % CI of the change
+from sample 0; dotted: the average single draw). Drawn by `scripts/16_plot_v2.py`.
+
+![Caption agreement vs realism at N = 16](assets/bon_v2_tradeoff.png)
+
+Each point is one verifier on one set at N = 16, against the average single draw: further right
+is better caption agreement, further down is more realistic. V2 sits furthest right, V3 lowest.
+
+![Examples, R2000](assets/bon_v2_examples_R2000.png)
+
+![Examples, S500](assets/bon_v2_examples_S500.png)
+
+Tiles drawn at random (seed 2026) by `scripts/17_examples_v2.py`: the real image, sample 0 and
+the best of 16 by V1, V2 and V3.
+
 ## Metric values at N = 16
 
 Generated from `results/bon_v2/<set>.json` by `scripts/15_tables_v2.py` (also written to
