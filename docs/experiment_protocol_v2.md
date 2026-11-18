@@ -268,6 +268,28 @@ the model, and fixes how the model is chosen.
    **secondary**: reported with all metrics and CIs at every N, but not in the primary Holm
    family, which stays CLIP and FID × {V1, V2, V1+V2} per set (amendment 1).
 
+### Amendment 2, part B (2026-11-18): result of the choice, V3 = InternVL3-2B
+
+Recorded before V3 scored any generated sample. Output: `results/bon_v2/vlm_validity.md`.
+
+| Verifier | Share of distractors above own caption [95 % CI] | Own caption first [95 % CI] | P(yes)+P(no) | s/pair |
+| --- | --- | --- | --- | --- |
+| V1 RemoteCLIP-B/32 | 0.086 [0.074, 0.097] | 0.456 [0.412, 0.502] | – | – |
+| V2 GeoRSCLIP-L/14 | 0.033 [0.026, 0.041] | 0.730 [0.692, 0.766] | – | – |
+| Qwen2.5-VL-3B | 0.042 [0.035, 0.051] | 0.622 [0.578, 0.666] | 0.995 | 0.194 |
+| **InternVL3-2B** | **0.022 [0.017, 0.028]** | **0.768 [0.732, 0.804]** | 1.000 | 0.135 |
+
+**V3 = InternVL3-2B** (`v3_internvl3_2b`), the lowest share, by the rule of part A. It is also
+the best of all verifiers on this check, CLIP-based ones included. P(yes)+P(no) ≈ 1 confirms
+that both models answer in the expected yes/no format.
+
+**Deviation: Qwen3-VL-4B was not measured.** It ran at about 94 s per tile (4.5 s per pair),
+30 times slower than the other two, also with nothing else on the GPU; its 8.9 GB of bf16
+weights leave too little room on the 12 GB card, which then spills into system memory. Scoring
+the Study 2 samples with it would take about 300 h for RFULL alone. It was stopped after 50
+tiles, before any result of it was computed or seen, and is excluded as infeasible on this
+hardware. The choice is therefore between the two candidates that ran.
+
 ### Amendment 3 (2026-11-18): a second N = 1 reference, the average single draw
 
 Written after report 1 below, before any RFULL sample beyond the R2000 tiles exists.
