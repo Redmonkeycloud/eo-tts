@@ -151,6 +151,24 @@ by V1, V2 and V3):
 
 ![Examples, S500](docs/assets/bon_v2_examples_S500.png)
 
+### Compute: NFE
+
+Every sample is generated with the authors' Euler sampler, **100 steps, no classifier-free
+guidance** (as in the paper), so one denoiser forward pass per step: **100 NFE per sample**.
+Best-of-N costs **100 · N NFE per tile**, plus N VAE decodes and N verifier calls:
+
+| N (candidates per tile) | 1 | 2 | 4 | 8 | 16 |
+| --- | --- | --- | --- | --- | --- |
+| NFE per tile (denoiser forward passes) | 100 | 200 | 400 | 800 | 1,600 |
+| VAE decodes per tile | 1 | 2 | 4 | 8 | 16 |
+| Verifier calls per tile | – | 2 | 4 | 8 | 16 |
+| Generation time per tile, Ω-B, bf16, RTX 3060 (measured 2.86 s per image) | 2.9 s | 5.7 s | 11.4 s | 22.9 s | 45.7 s |
+
+Measured verifier cost: V3 (InternVL3-2B) scores the 16 samples of a tile in 1.5 s, about
+0.09 s per image, 3 % of the generation time; V1 and V2 are single CLIP forward passes. The
+search algorithms of the next stage (Rollover Budget Forcing, zero-order search, search over
+paths) will be compared with Best-of-N at equal NFE.
+
 ### Registered primary endpoints (N = 16 vs sample 0)
 
 | Set | Verifier | CLIP gain | FID change | Guard (KID-DINOv2) | Verdict |

@@ -20,6 +20,7 @@ and leaves realism unchanged.
 | Model | TerraDiT-Ω-B (released weights), 100 Euler steps, no guidance, bf16 |
 | Sets | S500: 500 Git-Spatial tiles (held-out region); R2000: 2,000 Git-Rand tiles. Same tiles and seeds as the pilot |
 | Samples | 16 per tile, independent seeds; Best-of-N picks one of samples 0 … N−1, N ∈ {1, 2, 4, 8, 16} |
+| Compute | 100 Euler steps, CFG 0: 100 NFE per sample, 100 · N NFE per tile (see Compute below) |
 | Primary verifiers | V1 RemoteCLIP ViT-B/32, V2 GeoRSCLIP ViT-L/14, V1+V2 rank average |
 | Secondary verifiers | V3 InternVL3-2B, P("yes") to "Does this figure show {caption}?" (amendment 2); V1+V3 rank average |
 | Evaluators | CLIP ViT-L/14 score, LPIPS and SSIM vs the tile's real image, FID, KID-Inception, KID-DINOv2 |
@@ -53,6 +54,24 @@ and it reproduces under another batch layout and in fp32, so no defect in genera
 was found. Because a single draw is a noisy reference for set-level metrics, amendment 3 adds
 the **average single draw** as a second reference. For S500 and R2000 that reference is
 post-hoc; for RFULL it was fixed before the analysis.
+
+## Compute: NFE
+
+Sampler: the authors' `euler_sampler`, 100 steps, CFG scale 0 (`heun=False`), so one forward
+pass of the denoiser per step and no unconditional pass: **100 NFE per sample**. Best-of-N with
+N candidates costs **100 · N NFE per tile** (the samples are independent; nothing is shared).
+
+| N (candidates per tile) | 1 | 2 | 4 | 8 | 16 |
+| --- | --- | --- | --- | --- | --- |
+| NFE per tile (denoiser forward passes) | 100 | 200 | 400 | 800 | 1,600 |
+| VAE decodes per tile | 1 | 2 | 4 | 8 | 16 |
+| Verifier calls per tile | – | 2 | 4 | 8 | 16 |
+| Generation time per tile, Ω-B, bf16, RTX 3060 (measured 2.86 s per image) | 2.9 s | 5.7 s | 11.4 s | 22.9 s | 45.7 s |
+
+Not counted in NFE: N VAE decodes (inside the measured generation time) and N verifier calls.
+Measured: generation 2.86 s per image (S500), 2.88 s (R2000), 2.95 s (RFULL, with CPU analysis
+running alongside); V3 scoring 1.5 s per tile of 16 samples (about 0.09 s per image). NFE is the
+budget unit for comparing search algorithms with Best-of-N in the next stage.
 
 ## Figures
 

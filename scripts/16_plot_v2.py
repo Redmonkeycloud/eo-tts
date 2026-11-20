@@ -83,14 +83,14 @@ for j, (s, r) in enumerate(sets.items()):
             ax.plot(ns, [r["oracle"]["clip_cos"][str(n)] for n in ns], color="#999", lw=1, ls="-.",
                     label="oracle (upper bound)")
         ax.set_xscale("log", base=2)
-        ax.set_xticks(ns, [str(n) for n in ns])
+        ax.set_xticks(ns, [f"{n}\n({100 * n:,})" for n in ns])
         ax.grid(alpha=0.25, lw=0.5)
         if i == 0:
             ax.set_title(TITLE.get(s, s), fontsize=11)
         if j == 0:
             ax.set_ylabel(label, fontsize=10)
         if i == len(PANELS) - 1:
-            ax.set_xlabel("N (candidates per tile)")
+            ax.set_xlabel("N candidates per tile (NFE per tile = 100 · N)")
 handles, labels = axes[1][0].get_legend_handles_labels()
 fig.legend(handles, labels, loc="lower center", ncol=4, frameon=False, fontsize=9)
 fig.suptitle("Best-of-N with TerraDiT-Ω-B: metric values vs N (bands: 95 % CI of the change from sample 0)",
